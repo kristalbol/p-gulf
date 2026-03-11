@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operation Epic Fury — Game Theory Dashboard | Day 12</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;line-height:1.6;overflow-x:hidden}
+a{color:#58a6ff;text-decoration:none}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#161b22}
+::-webkit-scrollbar-thumb{background:#30363d;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#484f58}
+
+/* Ticker */
+.ticker-wrap{background:#161b22;border-bottom:1px solid #f85149;overflow:hidden;height:36px;position:sticky;top:0;z-index:100}
+.ticker{display:flex;animation:ticker 80s linear infinite;white-space:nowrap;height:36px;align-items:center}
+.ticker span{padding:0 40px;font-size:13px;color:#f0f6fc;font-weight:500}
+.ticker .critical{color:#f85149}
+.ticker .warn{color:#d29922}
+.ticker .info{color:#58a6ff}
+.ticker .positive{color:#3fb950}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* Header */
+.header{background:linear-gradient(135deg,#161b22 0%,#0d1117 100%);padding:20px 30px;border-bottom:1px solid #30363d;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.header h1{font-size:22px;color:#f0f6fc;font-weight:700}
+.header h1 .day{color:#f85149;font-weight:800}
+.header .meta{font-size:13px;color:#8b949e}
+.header .status-badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase}
+.badge.red{background:rgba(248,81,73,.15);color:#f85149;border:1px solid rgba(248,81,73,.4)}
+.badge.yellow{background:rgba(210,153,34,.15);color:#d29922;border:1px solid rgba(210,153,34,.4)}
+.badge.blue{background:rgba(88,166,255,.15);color:#58a6ff;border:1px solid rgba(88,166,255,.4)}
+.badge.green{background:rgba(63,185,80,.15);color:#3fb950;border:1px solid rgba(63,185,80,.4)}
+
+/* Tabs */
+.tabs{display:flex;background:#161b22;border-bottom:1px solid #30363d;padding:0 20px;overflow-x:auto;gap:0}
+.tab{padding:12px 20px;cursor:pointer;font-size:13px;font-weight:600;color:#8b949e;border-bottom:2px solid transparent;transition:.2s;white-space:nowrap}
+.tab:hover{color:#c9d1d9}
+.tab.active{color:#f0f6fc;border-bottom-color:#f85149}
+
+/* Content */
+.content{max-width:1400px;margin:0 auto;padding:20px}
+.panel{display:none}
+.panel.active{display:block}
+
+/* Cards */
+.card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin-bottom:16px}
+.card h3{color:#f0f6fc;font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* Metrics Grid */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.metric{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;text-align:center}
+.metric .value{font-size:28px;font-weight:800;color:#f0f6fc}
+.metric .label{font-size:12px;color:#8b949e;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.metric.red .value{color:#f85149}
+.metric.yellow .value{color:#d29922}
+.metric.green .value{color:#3fb950}
+.metric.blue .value{color:#58a6ff}
+
+/* Intel Feed */
+.alert{padding:14px 16px;border-radius:6px;margin-bottom:8px;border-left:4px solid;font-size:13px;display:flex;gap:12px;align-items:flex-start}
+.alert .time{font-weight:700;white-space:nowrap;min-width:60px;font-size:12px}
+.alert.critical{background:rgba(248,81,73,.08);border-color:#f85149;color:#ffa198}
+.alert.warning{background:rgba(210,153,34,.08);border-color:#d29922;color:#e3b341}
+.alert.info{background:rgba(88,166,255,.08);border-color:#58a6ff;color:#79c0ff}
+.alert.positive{background:rgba(63,185,80,.08);border-color:#3fb950;color:#56d364}
+
+/* Players */
+.player-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.player-card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;transition:.2s}
+.player-card:hover{border-color:#484f58}
+.player-card h4{font-size:15px;color:#f0f6fc;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.player-card .flag{font-size:20px}
+.power-bar{margin-bottom:8px}
+.power-bar .label-row{display:flex;justify-content:space-between;font-size:11px;color:#8b949e;margin-bottom:3px}
+.power-bar .bar{height:6px;background:#21262d;border-radius:3px;overflow:hidden}
+.power-bar .bar .fill{height:100%;border-radius:3px;transition:width .5s}
+.power-bar .bar .fill.mil{background:#f85149}
+.power-bar .bar .fill.eco{background:#d29922}
+.power-bar .bar .fill.dip{background:#58a6ff}
+.power-bar .bar .fill.dom{background:#a371f7}
+.player-update{font-size:12px;color:#8b949e;margin-top:10px;padding-top:10px;border-top:1px solid #21262d}
+.strategies{margin-top:10px;display:flex;flex-wrap:wrap;gap:4px}
+.strat-tag{font-size:11px;padding:2px 8px;border-radius:10px;background:#21262d;color:#c9d1d9}
+
+/* Payoff Matrix */
+.matrix-selector{margin-bottom:16px}
+.matrix-selector select{background:#21262d;color:#c9d1d9;border:1px solid #30363d;padding:8px 12px;border-radius:6px;font-size:14px;cursor:pointer}
+.matrix-table{width:100%;border-collapse:collapse;font-size:13px}
+.matrix-table th,.matrix-table td{padding:10px 14px;border:1px solid #30363d;text-align:center}
+.matrix-table th{background:#21262d;color:#f0f6fc;font-weight:600}
+.matrix-table td{background:#0d1117}
+.matrix-table td.nash{background:rgba(88,166,255,.12);color:#79c0ff;font-weight:700}
+.matrix-table td.pareto{background:rgba(63,185,80,.12);color:#56d364;font-weight:700}
+.matrix-table td.nash.pareto{background:linear-gradient(135deg,rgba(88,166,255,.12),rgba(63,185,80,.12));font-weight:700}
+.matrix-legend{display:flex;gap:16px;margin-top:10px;font-size:12px;color:#8b949e}
+.matrix-legend span{display:flex;align-items:center;gap:5px}
+.matrix-legend .sq{width:12px;height:12px;border-radius:2px;display:inline-block}
+
+/* Escalation */
+.escalation-ladder{position:relative}
+.rung{background:#161b22;border:1px solid #30363d;border-radius:8px;margin-bottom:8px;overflow:hidden;cursor:pointer;transition:.2s}
+.rung:hover{border-color:#484f58}
+.rung.current{border-color:#f85149;box-shadow:0 0 20px rgba(248,81,73,.15)}
+.rung-header{padding:14px 20px;display:flex;align-items:center;gap:12px}
+.rung-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.rung-num.low{background:rgba(63,185,80,.2);color:#3fb950}
+.rung-num.med{background:rgba(210,153,34,.2);color:#d29922}
+.rung-num.high{background:rgba(248,81,73,.2);color:#f85149}
+.rung-num.extreme{background:rgba(248,81,73,.4);color:#ff7b72}
+.rung-title{font-weight:600;color:#f0f6fc;font-size:14px;flex:1}
+.rung-marker{font-size:11px;padding:2px 8px;border-radius:10px}
+.rung-body{padding:0 20px 16px 64px;font-size:13px;color:#8b949e;display:none}
+.rung.open .rung-body{display:block}
+.rung .chevron{transition:.2s;color:#484f58}
+.rung.open .chevron{transform:rotate(180deg)}
+
+/* Equilibria */
+.eq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.eq-card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;position:relative;overflow:hidden}
+.eq-card .prob{font-size:36px;font-weight:800;color:#f0f6fc}
+.eq-card .change{font-size:14px;margin-left:6px}
+.eq-card .change.up{color:#3fb950}
+.eq-card .change.down{color:#f85149}
+.eq-card .change.flat{color:#8b949e}
+.eq-card h4{margin:8px 0;font-size:15px;color:#f0f6fc}
+.eq-card p{font-size:13px;color:#8b949e}
+.eq-card .bar-bg{height:6px;background:#21262d;border-radius:3px;margin-top:12px;overflow:hidden}
+.eq-card .bar-fill{height:100%;border-radius:3px}
+
+/* Trend Chart */
+.trend-chart-wrap{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin-bottom:20px}
+.trend-chart-wrap h3{color:#f0f6fc;font-size:16px;margin-bottom:16px}
+.chart-container{position:relative;width:100%;height:340px}
+.chart-container canvas{width:100%!important;height:100%!important}
+.chart-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;justify-content:center}
+.chart-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#8b949e;cursor:pointer}
+.chart-legend-item .swatch{width:12px;height:12px;border-radius:3px}
+
+/* Game Theory Box */
+.gt-box{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:16px;margin-top:12px;font-size:13px;color:#8b949e}
+.gt-box strong{color:#c9d1d9}
+
+/* Section headers */
+.section-title{font-size:18px;font-weight:700;color:#f0f6fc;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #21262d}
+
+/* Responsive */
+@media(max-width:768px){
+.metrics{grid-template-columns:repeat(2,1fr)}
+.player-grid{grid-template-columns:1fr}
+.eq-grid{grid-template-columns:1fr}
+.header{flex-direction:column;align-items:flex-start}
+.chart-container{height:260px}
+}
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+<div class="ticker" id="ticker">
+<span class="critical">DAY 12: IEA announces RECORD 400M barrel oil reserve release — largest in history, dwarfing 2022 Ukraine response</span>
+<span class="critical">Iran launches "most intense and heaviest operation" of entire war — Khoramshahr super-heavy missiles at Tel Aviv/Haifa</span>
+<span class="warn">Oil volatile at ~$91 — spiked to $93 after Hormuz attacks, markets shrug off IEA release as "water pistol not bazooka"</span>
+<span class="critical">IRGC fires on 2 vessels in Strait of Hormuz — Thai bulk carrier hit, 3 crew missing; 3 more ships struck off Iran coast</span>
+<span class="info">Mojtaba Khamenei confirmed fractured foot + minor injuries from Day 1 strikes — has not appeared publicly</span>
+<span class="critical">Russia giving Iran specific tactical drone advice — escalation from general intel sharing (Western intel official)</span>
+<span class="warn">Iran: nearly 10,000 civilian sites bombed, 1,300+ killed — accuses US/Israel of deliberate targeting</span>
+<span class="critical">Israel strikes residential Tehran overnight + major raids on northern Iran — Red Crescent says homes hit</span>
+<span class="positive">France calls emergency UNSC meeting on Lebanon — condemns Hezbollah but tells Israel no ground intervention</span>
+<span class="info">Iran sports minister: cannot participate in FIFA World Cup — "our players do not have security"</span>
+<span class="warn">2 drones fall near Dubai International Airport — 4 injured, airspace briefly closed</span>
+<span class="critical">Iran police chief: protesters will be treated as "enemies" — crackdown intensifying alongside war</span>
+<span class="info">Energy analyst: "Conflict needs to end by end of week or oil back over $100" — IEA reserves last only ~26 days</span>
+<!-- duplicate for seamless loop -->
+<span class="critical">DAY 12: IEA announces RECORD 400M barrel oil reserve release — largest in history, dwarfing 2022 Ukraine response</span>
+<span class="critical">Iran launches "most intense and heaviest operation" of entire war — Khoramshahr super-heavy missiles at Tel Aviv/Haifa</span>
+<span class="warn">Oil volatile at ~$91 — spiked to $93 after Hormuz attacks, markets shrug off IEA release as "water pistol not bazooka"</span>
+<span class="critical">IRGC fires on 2 vessels in Strait of Hormuz — Thai bulk carrier hit, 3 crew missing; 3 more ships struck off Iran coast</span>
+<span class="info">Mojtaba Khamenei confirmed fractured foot + minor injuries from Day 1 strikes — has not appeared publicly</span>
+<span class="critical">Russia giving Iran specific tactical drone advice — escalation from general intel sharing (Western intel official)</span>
+<span class="warn">Iran: nearly 10,000 civilian sites bombed, 1,300+ killed — accuses US/Israel of deliberate targeting</span>
+<span class="critical">Israel strikes residential Tehran overnight + major raids on northern Iran — Red Crescent says homes hit</span>
+<span class="positive">France calls emergency UNSC meeting on Lebanon — condemns Hezbollah but tells Israel no ground intervention</span>
+<span class="info">Iran sports minister: cannot participate in FIFA World Cup — "our players do not have security"</span>
+<span class="warn">2 drones fall near Dubai International Airport — 4 injured, airspace briefly closed</span>
+<span class="critical">Iran police chief: protesters will be treated as "enemies" — crackdown intensifying alongside war</span>
+<span class="info">Energy analyst: "Conflict needs to end by end of week or oil back over $100" — IEA reserves last only ~26 days</span>
+</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+<div>
+<h1>Operation Epic Fury — Game Theory Dashboard <span class="day">| DAY 12</span></h1>
+<div class="meta">March 11, 2026 · Multi-Player Incomplete-Information Game · Chicken × Prisoner's Dilemma Hybrid</div>
+</div>
+<div class="status-badges">
+<span class="badge red">ACTIVE CONFLICT</span>
+<span class="badge yellow">IEA 400M BBL RELEASE</span>
+<span class="badge red">HORMUZ ATTACKS</span>
+<span class="badge blue">DUAL ESCALATION</span>
+</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+<div class="tab active" onclick="switchTab('overview')">Overview</div>
+<div class="tab" onclick="switchTab('intel')">Intel Feed</div>
+<div class="tab" onclick="switchTab('players')">Players</div>
+<div class="tab" onclick="switchTab('payoff')">Payoff Matrix</div>
+<div class="tab" onclick="switchTab('escalation')">Escalation Ladder</div>
+<div class="tab" onclick="switchTab('equilibria')">Equilibria</div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- ============ OVERVIEW ============ -->
+<div class="panel active" id="overview">
+<div class="metrics">
+<div class="metric red"><div class="value">1,300+</div><div class="label">Iranian Killed (official)</div></div>
+<div class="metric red"><div class="value">10,000</div><div class="label">Civilian Sites Hit</div></div>
+<div class="metric yellow"><div class="value">~$91</div><div class="label">Brent Crude $/bbl</div></div>
+<div class="metric red"><div class="value">ATTACKS</div><div class="label">Strait of Hormuz</div></div>
+<div class="metric blue"><div class="value">5,000+</div><div class="label">Targets Struck</div></div>
+<div class="metric green"><div class="value">400M</div><div class="label">IEA BBL Release</div></div>
+<div class="metric red"><div class="value">7+ KIA</div><div class="label">U.S. Service Deaths</div></div>
+<div class="metric yellow"><div class="value">37th</div><div class="label">IRGC Attack Wave</div></div>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#f85149"></span>Conflict Snapshot — Day 12 (Dual Escalation + Global Economic Intervention)</h3>
+<p>Day 12 is a day of simultaneous maximum escalation from both sides and the largest global economic intervention in energy history. The IEA announced a record release of 400 million barrels of oil from emergency reserves — more than double the 2022 Ukraine response — after unanimous agreement from all 32 member nations. IEA Director Birol called the challenges "unprecedented in scale." Yet markets barely flinched: oil rose to ~$91, with analysts calling the release a "water pistol, not a bazooka" against the loss of ~20M bbl/day through Hormuz. Energy Aspects calculates the 400M barrels would be absorbed in just 26 days. One analyst warned: "This conflict needs to end by end of week. Otherwise, oil back over $100."</p>
+<p style="margin-top:10px">Both sides escalated overnight. Iran launched its "most intense and heaviest operation" of the entire war — its 37th wave — firing Khoramshahr super-heavy missiles (1+ tonne warheads) at Tel Aviv and Haifa. The IRGC fired on two vessels in the Strait of Hormuz, hitting the Thai-flagged Mayuree Naree (3 crew missing), and 3 more ships were struck off Iran's coast. Two drones fell near Dubai International Airport, injuring 4 and briefly closing airspace. The US/Israel responded with massive overnight strikes on residential Tehran and northern Iran, with the Red Crescent reporting homes hit. CNN confirmed Mojtaba Khamenei suffered a fractured foot and minor injuries from Day 1 strikes — he has not appeared publicly or issued a statement since being named Supreme Leader. A Western intelligence official revealed Russia has escalated from general intel sharing to providing Iran with specific tactical drone advice. Iran's police chief warned protesters would be treated as "enemies." France called an emergency UNSC meeting on Lebanon. WHO warned of toxic black rain health risks. Iran withdrew from the FIFA World Cup, saying its players lack security. Export volumes from the Gulf are at less than 10% of pre-war levels.</p>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#58a6ff"></span>Game-Theoretic Classification</h3>
+<div class="gt-box">
+<p><strong>Type:</strong> Multi-player, incomplete-information, dynamic game with asymmetric payoffs</p>
+<p style="margin-top:8px"><strong>Structure:</strong> Day 12 introduces a Time-Bounded Economic War of Attrition. The IEA's 400M barrel release creates an explicit clock: ~26 days of reserves vs. indefinite Hormuz disruption. This transforms the game from open-ended to finite-horizon, which game theory predicts should accelerate bargaining — both sides now know the West's economic ammunition has a known limit. Iran's response (firing on ships + "most intense operation") shows Tehran understands this clock and is maximizing damage within the window. Russia's tactical drone assistance deepens the proxy dimension. The game is now simultaneously a military war, an economic war, a proxy war, and a diplomatic crisis — with different time horizons on each dimension.</p>
+<p style="margin-top:8px"><strong>Key Tensions:</strong> (1) IEA 26-day clock: reserves deplete mid-April — if Hormuz stays closed, world faces unmanageable price crisis. Both sides now have a hard deadline for resolution or catastrophic escalation. (2) Iran's "most intense operation" CONTRADICTS missile degradation data — either IRGC conserved reserves for this moment, or Russian tactical assistance is enabling continued capability. (3) Mojtaba injured + silent = IRGC operating autonomously during the war's most dangerous phase. (4) Russia's tactical drone advice = operational proxy war support. Trump-Putin call creates surreal dynamic where the US president asks for help from Iran's operational enabler. (5) IEA release seen as inadequate by markets ($91 oil post-announcement) — proving Iran's Hormuz weapon is more powerful than the global response. (6) France's UNSC move on Lebanon = European allies forcing diplomatic track even as US escalates militarily. (7) Iran police chief threatening protesters as "enemies" = regime using external war to justify internal crackdown. (8) Aramco Yanbu pipeline + Iran Jask terminal = both sides building permanent Hormuz bypass infrastructure, reshaping the region's energy geography permanently.</p>
+</div>
+</div>
+</div>
+
+<!-- ============ INTEL FEED ============ -->
+<div class="panel" id="intel">
+<div class="section-title">Intelligence Feed — Last 48 Hours</div>
+
+<div class="alert critical"><span class="time">Mar 11</span><div><strong>IEA announces RECORD 400M barrel oil reserve release.</strong> Unanimous agreement from all 32 member nations. Largest emergency release in IEA's 50-year history — more than double the 182M barrels released after Russia invaded Ukraine. Birol: "Oil market challenges are unprecedented in scale." But analysts skeptical: at 20M bbl/day disrupted, reserves last only ~26 days. Oil barely moved (~$91). Energy Aspects calls it "water pistol, not bazooka." Marex analyst: "Conflict needs to end by end of week or oil back over $100."</div></div>
+
+<div class="alert critical"><span class="time">Mar 11</span><div><strong>Iran launches "most intense and heaviest operation" of entire war.</strong> 37th wave fires Khoramshahr super-heavy missiles (1+ tonne warheads) at Tel Aviv and Haifa in multi-layered barrages lasting 3+ hours. Contradicts "running out of missiles" narrative. Sirens in Jerusalem; explosions heard in Tel Aviv. IRGC: "will not allow export of even a single liter of oil" until attacks end.</div></div>
+
+<div class="alert critical"><span class="time">Mar 11</span><div><strong>IRGC fires on vessels in Strait of Hormuz.</strong> Thai-flagged bulk carrier Mayuree Naree hit after "disregarding warnings" — 3 crew missing. UKMTO reports 3 additional ships struck by projectiles off Iran's coast. 2 drones fell near Dubai International Airport, injuring 4, briefly closing airspace. At least 7 sailors killed in Hormuz attacks since war began per IMO.</div></div>
+
+<div class="alert info"><span class="time">Mar 11</span><div><strong>Mojtaba Khamenei confirmed injured — fractured foot + minor injuries from Day 1 strikes.</strong> CNN source confirms. Has not appeared publicly or issued a written statement since being named Supreme Leader. Creates leadership vacuum — IRGC operating with considerable autonomy.</div></div>
+
+<div class="alert critical"><span class="time">Mar 11</span><div><strong>Russia providing Iran specific tactical drone advice.</strong> Western intelligence official tells CNN this represents escalation from general intel sharing to operational-level support. Tehran using Russian guidance to improve strike accuracy against US and Gulf targets.</div></div>
+
+<div class="alert warning"><span class="time">Mar 11</span><div><strong>Iran: nearly 10,000 civilian sites bombed, 1,300+ killed.</strong> UN Ambassador Iravani accuses US/Israel of deliberately targeting civilian infrastructure. WHO warns of toxic "black rain" health risks from oil depot fires. Red Crescent says residential Tehran hit overnight. Iran police chief warns protesters will be treated as "enemies."</div></div>
+
+<div class="alert critical"><span class="time">Mar 11</span><div><strong>Israel launches massive overnight strikes on Tehran + northern Iran.</strong> Red Crescent reports residential areas hit in capital. CNN staff in northern Iran report major nighttime raids. Israel also struck Beirut and issued sweeping evacuation orders for south Beirut. Paramedic killed when Israeli strike hit Red Cross ambulance in south Lebanon.</div></div>
+
+<div class="alert positive"><span class="time">Mar 11</span><div><strong>France calls emergency UNSC meeting on Lebanon.</strong> Condemns Hezbollah but tells Israel to "refrain from land-based or long-term interventions." France deploying 8 warships + aircraft carrier + 2 helicopter carriers. Gulf exports at less than 10% of pre-war levels per IEA.</div></div>
+
+<div class="alert info"><span class="time">Mar 11</span><div><strong>Iran withdraws from FIFA World Cup.</strong> Sports minister: "Our players do not have security." 5 Iranian women's soccer players granted asylum in Australia. Trump says Iranian men's team "welcome to compete." FIFA President Infantino: World Cup needed "to bring people together."</div></div>
+
+<div class="alert warning"><span class="time">Mar 10</span><div><strong>Hegseth: "Most intense day of strikes" — most fighters, most bombers.</strong> Gen. Caine: Iran missile attacks down 90%, drone attacks down 83% since Day 1. US sinking Iranian minelayers in Hormuz. 5,000+ targets struck, 50+ vessels hit. Hegseth: "Our will is endless." But also: "This is not endless, not protracted."</div></div>
+
+<div class="alert critical"><span class="time">Mar 10</span><div><strong>Trump "TWENTY TIMES HARDER" Hormuz threat.</strong> Truth Social: "If Iran does anything that stops the flow of Oil within the Strait of Hormuz, they will be hit TWENTY TIMES HARDER." Also said war is "very complete, pretty much" and a "short-term excursion." Larijani responded threatening Trump directly: "Be careful not to get eliminated yourself."</div></div>
+
+<div class="alert info"><span class="time">Mar 10</span><div><strong>Trump-Putin phone call.</strong> Putin expressed interest in being "helpful" on Middle East. Trump urged Putin to end Ukraine war. Russia denies sharing intelligence with Iran (contradicted by Western officials). Aramco rerouting via East-West pipeline to Yanbu (7M bbl/day).</div></div>
+</div>
+
+<!-- ============ PLAYERS ============ -->
+<div class="panel" id="players">
+<div class="section-title">Strategic Actors</div>
+<div class="player-grid">
+
+<div class="player-card">
+<h4><span class="flag">🇺🇸</span> United States</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>98%</span></div><div class="bar"><div class="fill mil" style="width:98%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>80%</span></div><div class="bar"><div class="fill eco" style="width:80%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>45%</span></div><div class="bar"><div class="fill dip" style="width:45%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>55%</span></div><div class="bar"><div class="fill dom" style="width:55%"></div></div></div>
+<div class="player-update"><strong>Day 12:</strong> 5,000+ targets struck, 50+ ships hit. Hegseth declared "most intense day of strikes" with maximum fighter/bomber deployment. Gen. Caine: Iran missiles -90%, drones -83%. But IEA's 400M barrel release = admission war is causing global economic emergency. 7+ KIA. Trump sends wildly mixed signals: "war very complete" + "TWENTY TIMES HARDER" threat + "short-term excursion." Senate Democrats demanding public hearings. Gas up $0.60/gal to $3.58. US sinking Iranian minelayers in Hormuz. US internally "displeased" with Israeli oil depot strikes — coalition friction growing.</div>
+<div class="strategies"><span class="strat-tag">Oil Infrastructure War</span><span class="strat-tag">Sustained Air Campaign</span><span class="strat-tag">Demand Surrender</span><span class="strat-tag">Naval Dominance</span><span class="strat-tag">Covert Kurdish Support</span><span class="strat-tag">Regime Destabilization</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇮🇱</span> Israel</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>88%</span></div><div class="bar"><div class="fill mil" style="width:88%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>58%</span></div><div class="bar"><div class="fill eco" style="width:58%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>40%</span></div><div class="bar"><div class="fill dip" style="width:40%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>72%</span></div><div class="bar"><div class="fill dom" style="width:72%"></div></div></div>
+<div class="player-update"><strong>Day 12:</strong> Massive overnight strikes on residential Tehran + northern Iran. Red Crescent reports homes hit. Struck Beirut + sweeping evacuation orders for south Beirut. IDF source: needs "3 more weeks" to accomplish goals. Netanyahu: "our aim is to bring Iranian people to cast off tyranny." Killed 5 Iranian Quds Force commanders in Lebanon. Israeli strike hit Red Cross ambulance, killing paramedic. HRW found white phosphorus use in south Lebanon. US unhappy with Israeli oil depot targeting — first visible coalition friction. 82% Israeli public supports operations (IDI poll).</div>
+<div class="strategies"><span class="strat-tag">Oil Infrastructure Strikes</span><span class="strat-tag">Leadership Hunting</span><span class="strat-tag">Lebanon Ground Ops</span><span class="strat-tag">Quds Force Decapitation</span><span class="strat-tag">Regime Destabilization</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇮🇷</span> Iran / IRGC</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>20%</span></div><div class="bar"><div class="fill mil" style="width:20%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>12%</span></div><div class="bar"><div class="fill eco" style="width:12%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>50%</span></div><div class="bar"><div class="fill dip" style="width:50%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>30%</span></div><div class="bar"><div class="fill dom" style="width:30%"></div></div></div>
+<div class="player-update"><strong>Day 12:</strong> Launched "most intense and heaviest operation" of entire war — 37th wave with Khoramshahr super-heavy missiles (1+ tonne warheads) at Tel Aviv/Haifa. IRGC: "not a single liter of oil" will flow to hostile side. Fired on Thai ship in Hormuz — 3 crew missing. Mojtaba confirmed injured (fractured foot), hasn't spoken publicly. IRGC operating autonomously. 10,000 civilian sites hit, 1,300+ dead. Police chief threatening protesters as "enemies." Routing oil via Jask terminal on Gulf of Oman — showing adaptive capacity. Withdrew from FIFA World Cup. 240-hour internet blackout. Russia now providing specific tactical drone advice. Iran is losing militarily but escalating strategically.</div>
+<div class="strategies"><span class="strat-tag">Infrastructure Retaliation</span><span class="strat-tag">Succession Continuity</span><span class="strat-tag">Hardliner Consolidation</span><span class="strat-tag">Attrition Strategy</span><span class="strat-tag">Gulf Pressure</span><span class="strat-tag">Nuclear Ambiguity</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇸🇦</span> Saudi Arabia / Gulf States</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>55%</span></div><div class="bar"><div class="fill mil" style="width:55%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>72%</span></div><div class="bar"><div class="fill eco" style="width:72%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>60%</span></div><div class="bar"><div class="fill dip" style="width:60%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>62%</span></div><div class="bar"><div class="fill dom" style="width:62%"></div></div></div>
+<div class="player-update"><strong>Day 12:</strong> Under relentless assault. UAE: 1,440+ drones + 253+ missiles since war began; 4 foreign nationals killed, 117 wounded; 8 more missiles + 26 drones intercepted on Mar 10 alone. Dubai airport hit by 2 drones, 4 injured, airspace briefly closed. Bahrain: 32 injured including children in Sitra strike; woman killed in Manama. Saudi: first deaths in Kharj + Shaybah drone attacks; Aramco rerouting via East-West pipeline to Yanbu (7M bbl/day). Kuwait: 2 interior ministry officers killed. Qatar PM: Iran "betrayed us." Gulf exports at <10% of pre-war levels. IEA 400M barrel release = global recognition Gulf energy system is in crisis.</div>
+<div class="strategies"><span class="strat-tag">Active Missile Defense</span><span class="strat-tag">Production Cuts</span><span class="strat-tag">Infrastructure Protection</span><span class="strat-tag">Diplomatic Hedging</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇷🇺</span>🇨🇳 Russia / China</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>75%</span></div><div class="bar"><div class="fill mil" style="width:75%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>70%</span></div><div class="bar"><div class="fill eco" style="width:70%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>68%</span></div><div class="bar"><div class="fill dip" style="width:68%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>70%</span></div><div class="bar"><div class="fill dom" style="width:70%"></div></div></div>
+<div class="player-update"><strong>Day 12:</strong> MAJOR ESCALATION: Russia now providing Iran with specific tactical drone advice — upgraded from general intel sharing to operational-level support (Western intel official to CNN). Putin called Trump, said he "wants to be helpful" but simultaneously offers Mojtaba "unwavering support." Russia officially denies intel sharing (contradicted by multiple sources). Russia benefits from high oil prices + US resource drain + distraction from Ukraine. China "notes" Mojtaba's selection, warns against "interference in internal affairs." IEA's 400M barrel release directly impacts Chinese energy security — Beijing holds 1.1-1.4B barrels of its own reserves but isn't an IEA member. Ukraine's Zelensky notes war benefits Russia by diverting attention and military resources.</div>
+<div class="strategies"><span class="strat-tag">Public Diplomacy Pressure</span><span class="strat-tag">Intel Sharing (Russia)</span><span class="strat-tag">Summit Leverage</span><span class="strat-tag">Energy Security</span><span class="strat-tag">UNSC Diplomacy</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🟡</span> Hezbollah / Proxies</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>35%</span></div><div class="bar"><div class="fill mil" style="width:35%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>7%</span></div><div class="bar"><div class="fill eco" style="width:7%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>10%</span></div><div class="bar"><div class="fill dip" style="width:10%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>22%</span></div><div class="bar"><div class="fill dom" style="width:22%"></div></div></div>
+<div class="player-update"><strong>Day 12:</strong> Now the more active front than Iran itself — Israel acknowledged Lebanon launched more attacks than Iran over past week. 223+ attack waves since Mar 2. France called emergency UNSC meeting on Lebanon, told Israel no ground intervention. Israel struck Hezbollah financial infrastructure (Al-Qard al-Hassan banks) + Radwan Unit HQ in Dahiyeh. Paramedic killed in Israeli strike on Red Cross ambulance. ~500 killed in Lebanon, 500K+ displaced. Lebanese parliament postponed elections by 2 years. HRW found Israeli white phosphorus use in south Lebanon. Hezbollah carrying increasing operational weight as Iran's direct missile capability degrades.</div>
+<div class="strategies"><span class="strat-tag">Anti-Tank Warfare</span><span class="strat-tag">Rocket Barrages</span><span class="strat-tag">Asymmetric Defense</span><span class="strat-tag">Urban Guerrilla</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🏔️</span> Kurdish Forces (CPFIK)</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>40%</span></div><div class="bar"><div class="fill mil" style="width:40%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>10%</span></div><div class="bar"><div class="fill eco" style="width:10%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>28%</span></div><div class="bar"><div class="fill dip" style="width:28%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>60%</span></div><div class="bar"><div class="fill dom" style="width:60%"></div></div></div>
+<div class="player-update"><strong>Day 12:</strong> Ground offensive continues inside Iran but fading from headlines as war's focus shifts to Hormuz economic dimension and dual escalation. Trump rebuffed Kurdish political aspirations while leveraging military contribution — mirrors historical Kurdish abandonment pattern. NIC report says regime change unlikely = undermines strategic rationale for Kurdish ground ops. Iran's police chief threatening protesters as "enemies" suggests regime using external war to justify internal crackdown, which could suppress Kurdish-allied movements inside Iran.</div>
+<div class="strategies"><span class="strat-tag">Ground Offensive</span><span class="strat-tag">Western Front</span><span class="strat-tag">Self-Determination</span><span class="strat-tag">Regime Destabilization</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇹🇷</span> Turkey / NATO</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>70%</span></div><div class="bar"><div class="fill mil" style="width:70%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>45%</span></div><div class="bar"><div class="fill eco" style="width:45%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>55%</span></div><div class="bar"><div class="fill dip" style="width:55%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>50%</span></div><div class="bar"><div class="fill dom" style="width:50%"></div></div></div>
+<div class="player-update"><strong>Day 12:</strong> NATO air defenses intercepted a 3rd Iranian ballistic missile entering Turkish airspace in eastern Mediterranean. Turkey contributing to IEA oil reserve release as member nation. France calling emergency UNSC meeting on Lebanon puts diplomatic pressure on Turkey's dual position. Macron's Cyprus visit + 8-warship deployment strengthens European military presence in Turkey's neighborhood. Ankara quietly benefits from Kurdish ground offensive fading from focus but remains deeply opposed to any Kurdish political gains.</div>
+<div class="strategies"><span class="strat-tag">Anti-Kurdish Monitoring</span><span class="strat-tag">Border Security</span><span class="strat-tag">NATO Art. 5 Leverage</span><span class="strat-tag">Energy Security</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇪🇺</span> European NATO / EU</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>58%</span></div><div class="bar"><div class="fill mil" style="width:58%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>58%</span></div><div class="bar"><div class="fill eco" style="width:58%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>52%</span></div><div class="bar"><div class="fill dip" style="width:52%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>35%</span></div><div class="bar"><div class="fill dom" style="width:35%"></div></div></div>
+<div class="player-update"><strong>Day 12:</strong> IEA 400M barrel release = Europe's primary economic response. Germany and Austria releasing reserves. UK contributing 13.5M barrels. France calls emergency UNSC meeting on Lebanon + deploying 8 warships, carrier, 2 helicopter carriers. Macron hosting G7 video call. But IEA chief warns: reserves only address immediate disruption — Hormuz must reopen for stability. LNG supply reduced 20% = European energy crisis worsening. Dubai airport disrupted = EU nationals affected. EU Commission president von der Leyen reportedly supports Iranian regime change. Spain still blocking base access. European solidarity tested by escalating economic pain.</div>
+<div class="strategies"><span class="strat-tag">Cyprus Defense</span><span class="strat-tag">Selective Engagement</span><span class="strat-tag">Humanitarian Corridor</span><span class="strat-tag">Anti-War Pressure Mgmt</span></div>
+</div>
+
+</div>
+</div>
+
+<!-- ============ PAYOFF MATRIX ============ -->
+<div class="panel" id="payoff">
+<div class="section-title">Interactive Payoff Matrices</div>
+<div class="card">
+<div class="matrix-selector">
+<label>Select Dyad: </label>
+<select id="matrixSelect" onchange="showMatrix(this.value)">
+<option value="m1">USA/Israel vs Iran — Hormuz Weaponization</option>
+<option value="m2">USA vs Iran — Regime Change / Succession</option>
+<option value="m3">Iran vs Gulf States — Diplomatic Coercion via Hormuz</option>
+<option value="m4">USA vs Russia/China — Great Power Alignment</option>
+<option value="m5">Israel vs Hezbollah — Lebanon Front Escalation</option>
+</select>
+</div>
+
+<div id="m1" class="matrix-container">
+<p style="margin-bottom:12px;font-size:13px;color:#8b949e">Row: USA/Israel | Column: Iran · Payoffs = (Coalition, Iran)</p>
+<table class="matrix-table">
+<tr><th></th><th>Iran: Cease Retaliation</th><th>Iran: Military-Only Strikes</th><th>Iran: Hit Haifa Refineries</th></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">Coalition: Military Targets Only</td><td class="pareto">(+3, +1)</td><td>(+1, 0)</td><td>(-2, -1)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">Coalition: Oil Infra + Military</td><td>(+4, -3)</td><td class="nash">(+1, -2)</td><td>(-1, -4)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">Coalition: Total Economic War</td><td>(+3, -5)</td><td>(0, -4)</td><td class="nash">(-3, -5)</td></tr>
+</table>
+<div class="matrix-legend">
+<span><span class="sq" style="background:rgba(88,166,255,.3)"></span> Nash Equilibrium</span>
+<span><span class="sq" style="background:rgba(63,185,80,.3)"></span> Pareto Optimal</span>
+</div>
+<div class="gt-box" style="margin-top:12px">
+<strong>Day 12 Analysis:</strong> The IEA's 400M barrel release is a direct countermove to Iran's Hormuz oil weapon — but analysts call it a "water pistol" against ~20M bbl/day disrupted. At current rates, reserves last ~26 days, setting a hard deadline. Iran responded by firing on vessels in Hormuz and launching its "most intense operation" with super-heavy missiles. The game is now explicitly economic: Iran weaponizes Hormuz to inflict global pain, the West deploys strategic reserves to buy time. Current Nash: (Oil Infra + Military, Military-Only Strikes) persisting but Iran's commercial vessel attacks suggest escalation toward (Total Economic War, Hit Haifa Refineries) — the mutual destruction equilibrium. The 26-day reserve clock creates a new forcing function: if war doesn't end before reserves deplete, the world faces unmanageable price spikes.
+</div>
+</div>
+
+<div id="m2" class="matrix-container" style="display:none">
+<p style="margin-bottom:12px;font-size:13px;color:#8b949e">Row: USA | Column: Iran · Payoffs = (USA, Iran)</p>
+<table class="matrix-table">
+<tr><th></th><th>Iran: Negotiate / Capitulate</th><th>Iran: Covert Nuclear Sprint</th><th>Iran: Regime Consolidation</th></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Accept Partial Deal</td><td class="pareto">(+3, +3)</td><td>(-3, +2)</td><td>(-1, +2)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Continued Strikes</td><td>(+4, -2)</td><td class="nash">(0, -2)</td><td>(-1, -1)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Full Regime Change</td><td>(+2, -5)</td><td>(-1, -5)</td><td class="nash">(-3, -3)</td></tr>
+</table>
+<div class="matrix-legend">
+<span><span class="sq" style="background:rgba(88,166,255,.3)"></span> Nash Equilibrium</span>
+<span><span class="sq" style="background:rgba(63,185,80,.3)"></span> Pareto Optimal</span>
+</div>
+<div class="gt-box" style="margin-top:12px">
+<strong>Day 12 Analysis:</strong> Mojtaba's confirmed injury + silence creates a paradox: the new Supreme Leader can't lead publicly, but IRGC operates autonomously in his name. Trump called the succession "a big mistake" and said Mojtaba "can't live in peace" — but also hinted at "possibility" of talks. The regime change objective is increasingly theoretical: police chief threatening protesters as "enemies" = regime using war for internal consolidation, not fracturing. Iran's "Regime Consolidation" remains dominant strategy — absorb strikes, maintain Hormuz, outlast Trump's political attention span. The 5 women's soccer players seeking asylum is symbolic of brain drain but not institutional collapse. Iran routing oil through Jask terminal shows adaptive economic capacity even under bombardment.
+</div>
+</div>
+
+<div id="m3" class="matrix-container" style="display:none">
+<p style="margin-bottom:12px;font-size:13px;color:#8b949e">Row: Iran | Column: Gulf States · Payoffs = (Iran, Gulf)</p>
+<table class="matrix-table">
+<tr><th></th><th>Gulf: Continue Hosting US Ops</th><th>Gulf: Distance from Coalition</th><th>Gulf: Active Mediation</th></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">Iran: Military Targets Only</td><td>(-1, -1)</td><td class="pareto">(+1, +2)</td><td>(+2, +3)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">Iran: Hit Infrastructure</td><td class="nash">(-2, -4)</td><td>(0, -2)</td><td>(-1, -1)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">Iran: Target Desalination/Water</td><td>(-3, -5)</td><td class="nash">(-2, -4)</td><td>(-3, -3)</td></tr>
+</table>
+<div class="matrix-legend">
+<span><span class="sq" style="background:rgba(88,166,255,.3)"></span> Nash Equilibrium</span>
+<span><span class="sq" style="background:rgba(63,185,80,.3)"></span> Pareto Optimal</span>
+</div>
+<div class="gt-box" style="margin-top:12px">
+<strong>Day 12 Analysis:</strong> Gulf states are being devastated. UAE has absorbed 1,440+ drones and 253+ missiles. Dubai airport hit. Saudi Arabia's first deaths. Bahrain hit repeatedly. Kuwait losing personnel. Gulf exports at <10% of pre-war levels — existential economic damage. Aramco's Yanbu pipeline reroute (7M bbl/day) is an admission that Hormuz is lost for now. IRGC's Hormuz ultimatum (expel US/Israeli ambassadors for passage) creates a diplomatic wedge. Qatar PM saying Iran "betrayed us" shows anger, but the IEA having to release 400M barrels proves Iran's economic coercion is working at a global level. The game is shifting: Gulf states may increasingly pressure Washington for a ceasefire rather than accepting continued punishment.
+</div>
+</div>
+
+<div id="m4" class="matrix-container" style="display:none">
+<p style="margin-bottom:12px;font-size:13px;color:#8b949e">Row: USA | Column: Russia/China · Payoffs = (USA, Rus/Chi)</p>
+<table class="matrix-table">
+<tr><th></th><th>R/C: Verbal Only</th><th>R/C: Active Diplomacy + Intel</th><th>R/C: Material Escalation</th></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Ignore</td><td class="pareto">(+2, +2)</td><td>(-1, +3)</td><td>(-4, +2)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Diplomatic Engagement</td><td>(+3, +1)</td><td class="nash">(0, +2)</td><td>(-2, 0)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Sanctions/Pressure</td><td>(+1, -2)</td><td>(0, -1)</td><td class="nash">(-2, -3)</td></tr>
+</table>
+<div class="matrix-legend">
+<span><span class="sq" style="background:rgba(88,166,255,.3)"></span> Nash Equilibrium</span>
+<span><span class="sq" style="background:rgba(63,185,80,.3)"></span> Pareto Optimal</span>
+</div>
+<div class="gt-box" style="margin-top:12px">
+<strong>Day 12 Analysis:</strong> CRITICAL ESCALATION: Russia has moved from general intel sharing to providing specific tactical drone advice to Iran (Western intel official). This is operational-level proxy war support — one step from direct material aid. Putin's call with Trump where he "wants to be helpful" while simultaneously advising Iranian drone operators = classic dual-track strategy. Russia officially denies intel sharing (contradicted by evidence). Russia benefits enormously: high oil prices boost revenue, US military resources diverted from Ukraine, Western attention fragmented. Zelensky explicitly notes these benefits. China holds 1.1-1.4B barrels of reserves outside IEA framework — a wildcard. The game is moving toward (Diplomatic Engagement, Material Escalation) as Russia deepens commitment despite diplomatic overtures.
+</div>
+</div>
+
+<div id="m5" class="matrix-container" style="display:none">
+<p style="margin-bottom:12px;font-size:13px;color:#8b949e">Row: Israel | Column: Hezbollah · Payoffs = (Israel, Hezbollah)</p>
+<table class="matrix-table">
+<tr><th></th><th>Hez: Ceasefire</th><th>Hez: Defensive Only</th><th>Hez: Full Offensive</th></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">Israel: Contain to South</td><td class="pareto">(+3, +1)</td><td>(+1, 0)</td><td>(-1, -1)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">Israel: Expand Strikes</td><td>(+4, -2)</td><td class="nash">(+2, -2)</td><td>(0, -3)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">Israel: Full Invasion</td><td>(+3, -4)</td><td>(+1, -4)</td><td class="nash">(-1, -5)</td></tr>
+</table>
+<div class="matrix-legend">
+<span><span class="sq" style="background:rgba(88,166,255,.3)"></span> Nash Equilibrium</span>
+<span><span class="sq" style="background:rgba(63,185,80,.3)"></span> Pareto Optimal</span>
+</div>
+<div class="gt-box" style="margin-top:12px">
+<strong>Day 12 Analysis:</strong> Lebanon front is now more active than Iran. France called emergency UNSC meeting and told Israel no ground intervention — first major Western pushback on Israeli operations in Lebanon. IDF struck Hezbollah financial infrastructure (banks), Radwan Unit HQ, and Tyre. Israeli strike on Red Cross ambulance killed paramedic — a potential war crime. HRW documented white phosphorus use. ~500 dead in Lebanon, 500K+ displaced, elections postponed 2 years. But Hezbollah's attack volume isn't declining like Iran's — carrying increasing operational weight. The Nash equilibrium (Expand Strikes, Defensive Only) is being tested by France's UNSC intervention, which could constrain Israeli operations if Security Council acts.
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- ============ ESCALATION LADDER ============ -->
+<div class="panel" id="escalation">
+<div class="section-title">Schelling Escalation Ladder</div>
+<div class="escalation-ladder">
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num low">1</div>
+<div class="rung-title">Diplomatic Crisis</div>
+<span class="rung-marker badge blue">PASSED</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Breakdown of negotiations, recall of ambassadors, UNSC deadlock. <strong>Status:</strong> Passed — Geneva talks collapsed late February.</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num low">2</div>
+<div class="rung-title">Covert Operations / Cyber Warfare</div>
+<span class="rung-marker badge blue">PASSED</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Sabotage, cyber attacks, assassinations, intelligence operations. <strong>Status:</strong> Passed — extensive cyber ops, Mossad/CIA Kurdish coordination, space capabilities targeted.</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num med">3</div>
+<div class="rung-title">Limited Strikes on Military Targets</div>
+<span class="rung-marker badge blue">PASSED</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Precision strikes against military infrastructure, air defense, nuclear facilities. <strong>Status:</strong> Passed Day 1 — B-2 penetrator strikes on missile launchers and nuclear sites.</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num med">4</div>
+<div class="rung-title">Sustained Air/Naval Campaign</div>
+<span class="rung-marker badge blue">PASSED</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Extended bombing campaign, naval engagements, air superiority, destruction of enemy navy. <strong>Status:</strong> Passed — 3,000+ targets hit, 43 warships sunk, total air/naval dominance.</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num med">5</div>
+<div class="rung-title">Leadership Decapitation / Regime Targeting</div>
+<span class="rung-marker badge blue">PASSED</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Targeting of political/military leadership, government infrastructure, command and control. <strong>Status:</strong> Passed — Khamenei killed Day 1. New Supreme Leader chosen but unnamed — Israel vows to target successor. Quds Force commanders targeted in Beirut hotel. 12+ aircraft destroyed at Mehrabad Airport.</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num high">6</div>
+<div class="rung-title">Multi-Front Regional War</div>
+<span class="rung-marker badge blue">PASSED</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">
+<p>Conflict extends beyond initial theater to multiple simultaneous fronts. <strong>Status:</strong> Passed — 7+ active fronts: Lebanon, Gulf states, Kurdish ground ops, Turkish/NATO, Azerbaijan, Strait of Hormuz, Indian Ocean, Iraq.</p>
+</div>
+</div>
+
+<div class="rung current open" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num high">7</div>
+<div class="rung-title">Economic Infrastructure War / Oil Targeting</div>
+<span class="rung-marker badge red">◉ CURRENT — DAY 12</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">
+<p>Deliberate targeting of economic infrastructure — oil facilities, energy systems, water treatment, transport hubs — to destroy adversary's economic base and coerce capitulation.</p>
+<p style="margin-top:8px"><strong>Status — ACTIVE and INTENSIFYING as of Day 12:</strong></p>
+<p>• <strong>IEA 400M Barrel Release:</strong> Largest emergency release in history. 32 nations. Buys ~26 days. Markets shrug: "water pistol, not bazooka."</p>
+<p>• <strong>Hormuz Under Active Attack:</strong> IRGC fired on Thai ship (3 crew missing), 3 more ships struck. Only 2 non-Iran/Russia vessels transited since Trump's "free flow" promise.</p>
+<p>• <strong>Gulf Infrastructure:</strong> Dubai airport hit by drones. Saudi Shaybah oil field attacked. Bahrain repeatedly struck. Gulf exports at <10% pre-war levels.</p>
+<p>• <strong>Tehran Oil Depots:</strong> Already hit Days 8-9. WHO warns of toxic black rain. Fires ongoing.</p>
+<p>• <strong>Aramco Bypass:</strong> East-West pipeline to Yanbu reaching 7M bbl/day — permanent infrastructure to bypass Hormuz.</p>
+<p>• <strong>Iran Jask Terminal:</strong> Kpler data shows Iran rerouting crude exports through Gulf of Oman, loading 2M barrels on Mar 7.</p>
+<p style="margin-top:8px"><strong>Day 12 dynamics:</strong> The IEA release sets a hard 26-day economic clock. If Hormuz doesn't reopen by mid-April, reserves run dry and the global economy faces unmanageable supply crisis. Iran's "most intense operation" + commercial vessel attacks show Tehran is ACCELERATING its economic warfare strategy, not conserving. The IEA's intervention proves Iran's Hormuz weapon is working at a global level — but reserves can only buy time, not resolve the underlying conflict. One analyst: "Only military de-escalation can drive crude sustainably lower."</p>
+</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num high">8</div>
+<div class="rung-title">Ground Invasion / Occupation</div>
+<span class="rung-marker badge yellow">PARTIALLY ACTIVE</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Large-scale ground forces committed, territorial occupation, urban warfare. <strong>Status:</strong> Partially active — IDF ground invasion of Lebanon + Bekaa Valley commando raid. Kurdish ground offensive inside Iran. Trump says US ground troops "possibly." Israeli source says 3 more weeks needed. NIC report undermines full ground invasion rationale. Senate Democrats demanding war powers testimony.</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num extreme">9</div>
+<div class="rung-title">WMD Use / Catastrophic Escalation</div>
+<span class="rung-marker badge yellow">ELEVATED RISK</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Use of weapons of mass destruction, nuclear detonation, or great-power direct confrontation. <strong>Status:</strong> Elevated and rising. Mojtaba Khamenei installation + IRGC allegiance + Putin "unwavering support" = hardline consolidation with Russian backing. 2nd NATO intercept over Turkey. Oil at $119 = global economic emergency. IRGC "holds the screw of oil prices." Araghchi: "no room for diplomacy." Hormuz ultimatum forces countries to choose sides. Trump contradictory messaging creates strategic uncertainty. All off-ramps explicitly closed by both sides. Catastrophic Escalation probability at highest level since war began (26%).</div>
+</div>
+
+</div>
+</div>
+
+<!-- ============ EQUILIBRIA ============ -->
+<div class="panel" id="equilibria">
+<div class="section-title">Possible Stable Outcomes</div>
+
+<!-- TREND CHART -->
+<div class="trend-chart-wrap">
+<h3>Probability Trends — Day 1 to Day 12</h3>
+<div class="chart-container">
+<canvas id="trendChart"></canvas>
+</div>
+<div class="chart-legend">
+<div class="chart-legend-item" onclick="toggleLine(0)"><span class="swatch" style="background:#58a6ff"></span> Negotiated Regime Transition</div>
+<div class="chart-legend-item" onclick="toggleLine(1)"><span class="swatch" style="background:#d29922"></span> Prolonged Attrition War</div>
+<div class="chart-legend-item" onclick="toggleLine(2)"><span class="swatch" style="background:#3fb950"></span> Iranian Capitulation / Collapse</div>
+<div class="chart-legend-item" onclick="toggleLine(3)"><span class="swatch" style="background:#f85149"></span> Catastrophic Escalation</div>
+</div>
+</div>
+
+<!-- OUTCOME CARDS -->
+<div class="eq-grid">
+
+<div class="eq-card">
+<div class="prob">14%<span class="change down">↓1%</span></div>
+<h4>Negotiated Regime Transition</h4>
+<p>Iran's leadership agrees to fundamental political reforms and denuclearization in exchange for ceasefire and sanctions relief. Requires credible guarantees and viable internal reformist movement.</p>
+<p style="margin-top:8px;color:#c9d1d9;font-size:12px"><strong>Day 12:</strong> Yesterday's faint off-ramp signals faded as both sides escalated maximally overnight. Iran launched its "most intense operation" of the war. Araghchi told PBS negotiations "not on the table." Mojtaba's confirmed injury + silence creates leadership uncertainty that precludes negotiation. Russia's tactical drone assistance deepens Moscow's investment in continued conflict. Iran's police chief warning protesters will be treated as "enemies" shows the regime using the war to crush internal dissent — they need the war to justify repression. The IEA release is an economic countermeasure, not a diplomatic one.</p>
+<div class="bar-bg"><div class="bar-fill" style="width:14%;background:#58a6ff"></div></div>
+</div>
+
+<div class="eq-card">
+<div class="prob">35%<span class="change down">↓1%</span></div>
+<h4>Prolonged Attrition War</h4>
+<p>No decisive outcome; conflict degrades into sustained multi-front war of attrition. Iran absorbs strikes while maintaining asymmetric pressure through proxies and infrastructure attacks.</p>
+<p style="margin-top:8px;color:#c9d1d9;font-size:12px"><strong>Day 12:</strong> Still the most likely single outcome but trending down as catastrophic escalation rises. The IEA's 400M barrel release buys ~26 days at current disruption levels — essentially setting a clock: if Hormuz doesn't reopen in a month, reserves run dry and the global economy faces a genuine crisis. Iran's "most intense operation" with Khoramshahr super-heavy missiles suggests not conservation but escalation — contradicting the "running out of missiles" narrative. Analyst Marex: "Conflict needs to end by end of week." The war's economic sustainability has a hard deadline now. Gulf exports at <10% of pre-war levels = structural damage accumulating daily.</p>
+<div class="bar-bg"><div class="bar-fill" style="width:35%;background:#d29922"></div></div>
+</div>
+
+<div class="eq-card">
+<div class="prob">23%<span class="change down">↓1%</span></div>
+<h4>Iranian Capitulation / Collapse</h4>
+<p>Military destruction + internal rebellion leads to regime collapse or unconditional surrender. Requires severing of leadership from military apparatus and popular uprising.</p>
+<p style="margin-top:8px;color:#c9d1d9;font-size:12px"><strong>Day 12:</strong> Steady. Mojtaba's injury + silence is concerning for regime continuity but IRGC is operating autonomously. 37th attack wave with super-heavy missiles shows remaining capability. Police chief threatening protesters as "enemies" suggests the regime fears internal dissent more than external strikes. 10,000 civilian sites hit = enormous destruction but regime has institutional survival mode engaged. Iran routing oil exports through Jask terminal on Gulf of Oman shows adaptive capacity. FIFA World Cup withdrawal = symbolic isolation but not collapse indicator.</p>
+<div class="bar-bg"><div class="bar-fill" style="width:23%;background:#3fb950"></div></div>
+</div>
+
+<div class="eq-card">
+<div class="prob">28%<span class="change up">↑3%</span></div>
+<h4>Catastrophic Escalation</h4>
+<p>Conflict spirals into great-power confrontation, WMD use, or uncontrollable regional conflagration involving NATO Article 5, Russian direct intervention, or nuclear detonation.</p>
+<p style="margin-top:8px;color:#c9d1d9;font-size:12px"><strong>Day 12:</strong> NEW HIGH — now the second most likely outcome, approaching Prolonged Attrition. Dual maximum escalation: Iran's "most intense operation" + US "most intense strikes" = both sides choosing escalation over de-escalation simultaneously. Russia providing specific tactical drone advice = deepening proxy war involvement. IRGC actively firing on commercial vessels in Hormuz — 3 crew missing from Thai ship. Drones hitting Dubai airport. IEA reserve release sets a 26-day clock — if war continues past reserves, global economic crisis intensifies catastrophically. Mojtaba injured and silent = IRGC operating without clear political authority, raising miscalculation risk. WHO warning of toxic black rain = environmental catastrophe dimension. France calling emergency UNSC = international system being activated. The trend line from 17% baseline to 28% shows steady, relentless escalation accumulation.</p>
+<div class="bar-bg"><div class="bar-fill" style="width:28%;background:#f85149"></div></div>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:20px">
+<h3><span class="dot" style="background:#a371f7"></span>Methodology Note</h3>
+<p style="font-size:13px;color:#8b949e">Probabilities are Bayesian estimates updated daily from baseline priors (Day 1: 30/28/25/17%) using verified open-source reporting. Day 12 marks a critical inflection: Catastrophic Escalation (28%) is now within 7 points of Prolonged Attrition (35%) — the gap has been closing steadily since Day 6. The IEA's 400M barrel release sets a hard economic clock: reserves cover ~26 days at current disruption. If Hormuz doesn't reopen, the world exhausts emergency supplies by mid-April. Iran's "most intense operation" with super-heavy missiles + Russia's tactical drone assistance + IRGC firing on commercial vessels = escalation vectors intensifying despite US military degradation of Iranian capability. The paradox of Day 12: Iran is simultaneously losing militarily and escalating strategically. All data from major wire services, defense publications, and official statements.</p>
+</div>
+</div>
+
+</div><!-- /content -->
+
+<div style="text-align:center;padding:20px;font-size:11px;color:#484f58;border-top:1px solid #21262d;margin-top:20px">
+Operation Epic Fury Game Theory Dashboard · Day 10 · March 11, 2026 · Auto-generated from verified open-source intelligence
+</div>
+
+<script>
+// Tab switching
+let chartInited = false;
+function switchTab(id){
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+const map={overview:0,intel:1,players:2,payoff:3,escalation:4,equilibria:5};
+document.querySelectorAll('.tab')[map[id]].classList.add('active');
+if(id === 'equilibria' && !chartInited){
+  chartInited = true;
+  setTimeout(initChart, 50);
+}
+}
+
+// Matrix switching
+function showMatrix(id){
+document.querySelectorAll('.matrix-container').forEach(m=>m.style.display='none');
+document.getElementById(id).style.display='block';
+}
+
+// Escalation rungs
+function toggleRung(el){
+el.classList.toggle('open');
+}
+
+// ===== TREND CHART =====
+const trendData = {
+labels: ['Day 1\nFeb 28','Day 2\nMar 1','Day 3\nMar 2','Day 4\nMar 3','Day 5\nMar 4','Day 6\nMar 5','Day 7\nMar 6','Day 8\nMar 7','Day 9\nMar 8','Day 10\nMar 9','Day 11\nMar 10','Day 12\nMar 11'],
+series: [
+  {name:'Negotiated Transition', color:'#58a6ff', data:[30, 28, 25, 23, 22, 20, 19, 20, 17, 12, 15, 14], visible:true},
+  {name:'Prolonged Attrition',   color:'#d29922', data:[28, 26, 27, 30, 31, 33, 34, 34, 37, 40, 36, 35], visible:true},
+  {name:'Iranian Collapse',      color:'#3fb950', data:[25, 28, 28, 27, 26, 26, 25, 25, 23, 22, 24, 23], visible:true},
+  {name:'Catastrophic Escalation',color:'#f85149', data:[17, 18, 20, 20, 21, 21, 22, 21, 23, 26, 25, 28], visible:true}
+]
+};
+
+let chartCanvas, chartCtx;
+const padding = {top:30, right:20, bottom:50, left:50};
+
+function initChart(){
+chartCanvas = document.getElementById('trendChart');
+if(!chartCanvas) return;
+chartCtx = chartCanvas.getContext('2d');
+resizeChart();
+window.addEventListener('resize', ()=>{resizeChart(); drawChart();});
+drawChart();
+chartCanvas.addEventListener('mousemove', handleHover);
+chartCanvas.addEventListener('mouseleave', ()=>{drawChart();});
+}
+
+function resizeChart(){
+const container = chartCanvas.parentElement;
+const dpr = window.devicePixelRatio || 1;
+chartCanvas.width = container.clientWidth * dpr;
+chartCanvas.height = container.clientHeight * dpr;
+chartCanvas.style.width = container.clientWidth + 'px';
+chartCanvas.style.height = container.clientHeight + 'px';
+chartCtx.scale(dpr, dpr);
+}
+
+function drawChart(highlightIdx){
+const w = chartCanvas.clientWidth;
+const h = chartCanvas.clientHeight;
+const ctx = chartCtx;
+ctx.clearRect(0,0,w,h);
+
+const plotW = w - padding.left - padding.right;
+const plotH = h - padding.top - padding.bottom;
+const n = trendData.labels.length;
+const stepX = plotW / (n - 1);
+
+// Grid lines
+ctx.strokeStyle = '#21262d';
+ctx.lineWidth = 1;
+for(let i = 0; i <= 4; i++){
+  const y = padding.top + (plotH / 4) * i;
+  ctx.beginPath();
+  ctx.moveTo(padding.left, y);
+  ctx.lineTo(w - padding.right, y);
+  ctx.stroke();
+  const val = 40 - i * 10;
+  ctx.fillStyle = '#484f58';
+  ctx.font = '11px -apple-system, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(val + '%', padding.left - 8, y + 4);
+}
+
+// X labels
+ctx.fillStyle = '#8b949e';
+ctx.font = '11px -apple-system, sans-serif';
+ctx.textAlign = 'center';
+for(let i = 0; i < n; i++){
+  const x = padding.left + stepX * i;
+  const lines = trendData.labels[i].split('\n');
+  ctx.fillText(lines[0], x, h - padding.bottom + 16);
+  if(lines[1]){
+    ctx.fillStyle = '#484f58';
+    ctx.fillText(lines[1], x, h - padding.bottom + 30);
+    ctx.fillStyle = '#8b949e';
+  }
+}
+
+// Highlight column
+if(highlightIdx !== undefined){
+  const x = padding.left + stepX * highlightIdx;
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  ctx.fillRect(x - stepX/2, padding.top, stepX, plotH);
+}
+
+// Draw lines
+trendData.series.forEach((s, si) => {
+  if(!s.visible) return;
+  ctx.strokeStyle = s.color;
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  s.data.forEach((val, i) => {
+    const x = padding.left + stepX * i;
+    const y = padding.top + plotH - (val / 40) * plotH;
+    if(i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Area fill
+  const r = parseInt(s.color.slice(1,3),16);
+  const g = parseInt(s.color.slice(3,5),16);
+  const b = parseInt(s.color.slice(5,7),16);
+  ctx.fillStyle = `rgba(${r},${g},${b},0.05)`;
+  ctx.beginPath();
+  s.data.forEach((val, i) => {
+    const x = padding.left + stepX * i;
+    const y = padding.top + plotH - (val / 40) * plotH;
+    if(i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.lineTo(padding.left + stepX * (n-1), padding.top + plotH);
+  ctx.lineTo(padding.left, padding.top + plotH);
+  ctx.closePath();
+  ctx.fill();
+
+  // Dots
+  s.data.forEach((val, i) => {
+    const x = padding.left + stepX * i;
+    const y = padding.top + plotH - (val / 40) * plotH;
+    ctx.fillStyle = s.color;
+    ctx.beginPath();
+    ctx.arc(x, y, (highlightIdx === i) ? 5 : 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+});
+
+// Tooltip
+if(highlightIdx !== undefined){
+  const x = padding.left + stepX * highlightIdx;
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  ctx.moveTo(x, padding.top);
+  ctx.lineTo(x, padding.top + plotH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const tooltipW = 200;
+  const tooltipH = 90;
+  let tx = x + 12;
+  if(tx + tooltipW > w - 10) tx = x - tooltipW - 12;
+  let ty = padding.top + 10;
+
+  ctx.fillStyle = 'rgba(22,27,34,0.95)';
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1;
+  roundRect(ctx, tx, ty, tooltipW, tooltipH, 6);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.font = 'bold 12px -apple-system, sans-serif';
+  ctx.fillStyle = '#f0f6fc';
+  ctx.textAlign = 'left';
+  ctx.fillText(trendData.labels[highlightIdx].replace('\n',' — '), tx + 10, ty + 18);
+
+  trendData.series.forEach((s, si) => {
+    if(!s.visible) return;
+    ctx.fillStyle = s.color;
+    ctx.beginPath();
+    ctx.arc(tx + 16, ty + 32 + si * 15, 4, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#c9d1d9';
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.fillText(s.data[highlightIdx] + '%', tx + 26, ty + 36 + si * 15);
+    if(highlightIdx > 0){
+      const diff = s.data[highlightIdx] - s.data[highlightIdx-1];
+      if(diff > 0){ctx.fillStyle='#3fb950'; ctx.fillText('↑'+diff, tx + 50, ty + 36 + si * 15);}
+      else if(diff < 0){ctx.fillStyle='#f85149'; ctx.fillText('↓'+Math.abs(diff), tx + 50, ty + 36 + si * 15);}
+      else{ctx.fillStyle='#8b949e'; ctx.fillText('→', tx + 50, ty + 36 + si * 15);}
+    }
+  });
+}
+}
+
+function roundRect(ctx, x, y, w, h, r){
+ctx.beginPath();
+ctx.moveTo(x+r,y);
+ctx.lineTo(x+w-r,y);
+ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+ctx.lineTo(x+w,y+h-r);
+ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+ctx.lineTo(x+r,y+h);
+ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+ctx.lineTo(x,y+r);
+ctx.quadraticCurveTo(x,y,x+r,y);
+ctx.closePath();
+}
+
+function handleHover(e){
+const rect = chartCanvas.getBoundingClientRect();
+const mx = e.clientX - rect.left;
+const w = chartCanvas.clientWidth;
+const plotW = w - padding.left - padding.right;
+const n = trendData.labels.length;
+const stepX = plotW / (n - 1);
+const relX = mx - padding.left;
+const idx = Math.round(relX / stepX);
+if(idx >= 0 && idx < n){
+  drawChart(idx);
+} else {
+  drawChart();
+}
+}
+
+function toggleLine(idx){
+trendData.series[idx].visible = !trendData.series[idx].visible;
+const items = document.querySelectorAll('.chart-legend-item');
+items[idx].style.opacity = trendData.series[idx].visible ? 1 : 0.3;
+drawChart();
+}
+</script>
+</body>
+</html>
