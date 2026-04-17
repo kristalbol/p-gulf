@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operation Epic Fury — Game Theory Dashboard | Day 49</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;line-height:1.6;overflow-x:hidden}
+a{color:#58a6ff;text-decoration:none}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#161b22}
+::-webkit-scrollbar-thumb{background:#30363d;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#484f58}
+
+/* Ticker */
+.ticker-wrap{background:#161b22;border-bottom:1px solid #f85149;overflow:hidden;height:36px;position:sticky;top:0;z-index:100}
+.ticker{display:flex;animation:ticker 60s linear infinite;white-space:nowrap;height:36px;align-items:center}
+.ticker span{padding:0 40px;font-size:13px;color:#f0f6fc;font-weight:500}
+.ticker .critical{color:#f85149}
+.ticker .warn{color:#d29922}
+.ticker .info{color:#58a6ff}
+.ticker .positive{color:#3fb950}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* Header */
+.header{background:linear-gradient(135deg,#161b22 0%,#0d1117 100%);padding:20px 30px;border-bottom:1px solid #30363d;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.header h1{font-size:22px;color:#f0f6fc;font-weight:700}
+.header h1 .day{color:#f85149;font-weight:800}
+.header .meta{font-size:13px;color:#8b949e}
+.header .status-badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase}
+.badge.red{background:rgba(248,81,73,.15);color:#f85149;border:1px solid rgba(248,81,73,.4)}
+.badge.yellow{background:rgba(210,153,34,.15);color:#d29922;border:1px solid rgba(210,153,34,.4)}
+.badge.blue{background:rgba(88,166,255,.15);color:#58a6ff;border:1px solid rgba(88,166,255,.4)}
+
+/* Tabs */
+.tabs{display:flex;background:#161b22;border-bottom:1px solid #30363d;padding:0 20px;overflow-x:auto;gap:0}
+.tab{padding:12px 20px;cursor:pointer;font-size:13px;font-weight:600;color:#8b949e;border-bottom:2px solid transparent;transition:.2s;white-space:nowrap}
+.tab:hover{color:#c9d1d9}
+.tab.active{color:#f0f6fc;border-bottom-color:#f85149}
+
+/* Content */
+.content{max-width:1400px;margin:0 auto;padding:20px}
+.panel{display:none}
+.panel.active{display:block}
+
+/* Cards */
+.card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin-bottom:16px}
+.card h3{color:#f0f6fc;font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* Metrics Grid */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.metric{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;text-align:center}
+.metric .value{font-size:28px;font-weight:800;color:#f0f6fc}
+.metric .label{font-size:12px;color:#8b949e;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.metric.red .value{color:#f85149}
+.metric.yellow .value{color:#d29922}
+.metric.green .value{color:#3fb950}
+.metric.blue .value{color:#58a6ff}
+
+/* Intel Feed */
+.alert{padding:14px 16px;border-radius:6px;margin-bottom:8px;border-left:4px solid;font-size:13px;display:flex;gap:12px;align-items:flex-start}
+.alert .time{font-weight:700;white-space:nowrap;min-width:60px;font-size:12px}
+.alert.critical{background:rgba(248,81,73,.08);border-color:#f85149;color:#ffa198}
+.alert.warning{background:rgba(210,153,34,.08);border-color:#d29922;color:#e3b341}
+.alert.info{background:rgba(88,166,255,.08);border-color:#58a6ff;color:#79c0ff}
+.alert.positive{background:rgba(63,185,80,.08);border-color:#3fb950;color:#56d364}
+
+/* Players */
+.player-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.player-card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;transition:.2s}
+.player-card:hover{border-color:#484f58}
+.player-card h4{font-size:15px;color:#f0f6fc;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.player-card .flag{font-size:20px}
+.power-bar{margin-bottom:8px}
+.power-bar .label-row{display:flex;justify-content:space-between;font-size:11px;color:#8b949e;margin-bottom:3px}
+.power-bar .bar{height:6px;background:#21262d;border-radius:3px;overflow:hidden}
+.power-bar .bar .fill{height:100%;border-radius:3px;transition:width .5s}
+.power-bar .bar .fill.mil{background:#f85149}
+.power-bar .bar .fill.eco{background:#d29922}
+.power-bar .bar .fill.dip{background:#58a6ff}
+.power-bar .bar .fill.dom{background:#a371f7}
+.player-update{font-size:12px;color:#8b949e;margin-top:10px;padding-top:10px;border-top:1px solid #21262d}
+.strategies{margin-top:10px;display:flex;flex-wrap:wrap;gap:4px}
+.strat-tag{font-size:11px;padding:2px 8px;border-radius:10px;background:#21262d;color:#c9d1d9}
+
+/* Payoff Matrix */
+.matrix-selector{margin-bottom:16px}
+.matrix-selector select{background:#21262d;color:#c9d1d9;border:1px solid #30363d;padding:8px 12px;border-radius:6px;font-size:14px;cursor:pointer}
+.matrix-table{width:100%;border-collapse:collapse;font-size:13px}
+.matrix-table th,.matrix-table td{padding:10px 14px;border:1px solid #30363d;text-align:center}
+.matrix-table th{background:#21262d;color:#f0f6fc;font-weight:600}
+.matrix-table td{background:#0d1117}
+.matrix-table td.nash{background:rgba(88,166,255,.12);color:#79c0ff;font-weight:700}
+.matrix-table td.pareto{background:rgba(63,185,80,.12);color:#56d364;font-weight:700}
+.matrix-table td.nash.pareto{background:linear-gradient(135deg,rgba(88,166,255,.12),rgba(63,185,80,.12));font-weight:700}
+.matrix-legend{display:flex;gap:16px;margin-top:10px;font-size:12px;color:#8b949e}
+.matrix-legend span{display:flex;align-items:center;gap:5px}
+.matrix-legend .sq{width:12px;height:12px;border-radius:2px;display:inline-block}
+
+/* Escalation */
+.escalation-ladder{position:relative}
+.rung{background:#161b22;border:1px solid #30363d;border-radius:8px;margin-bottom:8px;overflow:hidden;cursor:pointer;transition:.2s}
+.rung:hover{border-color:#484f58}
+.rung.current{border-color:#f85149;box-shadow:0 0 20px rgba(248,81,73,.15)}
+.rung-header{padding:14px 20px;display:flex;align-items:center;gap:12px}
+.rung-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.rung-num.low{background:rgba(63,185,80,.2);color:#3fb950}
+.rung-num.med{background:rgba(210,153,34,.2);color:#d29922}
+.rung-num.high{background:rgba(248,81,73,.2);color:#f85149}
+.rung-num.extreme{background:rgba(248,81,73,.4);color:#ff7b72}
+.rung-title{font-weight:600;color:#f0f6fc;font-size:14px;flex:1}
+.rung-marker{font-size:11px;padding:2px 8px;border-radius:10px}
+.rung-body{padding:0 20px 16px 64px;font-size:13px;color:#8b949e;display:none}
+.rung.open .rung-body{display:block}
+.rung .chevron{transition:.2s;color:#484f58}
+.rung.open .chevron{transform:rotate(180deg)}
+
+/* Equilibria */
+.eq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.eq-card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;position:relative;overflow:hidden}
+.eq-card .prob{font-size:36px;font-weight:800;color:#f0f6fc}
+.eq-card .change{font-size:14px;margin-left:6px}
+.eq-card .change.up{color:#3fb950}
+.eq-card .change.down{color:#f85149}
+.eq-card .change.flat{color:#8b949e}
+.eq-card h4{margin:8px 0;font-size:15px;color:#f0f6fc}
+.eq-card p{font-size:13px;color:#8b949e}
+.eq-card .bar-bg{height:6px;background:#21262d;border-radius:3px;margin-top:12px;overflow:hidden}
+.eq-card .bar-fill{height:100%;border-radius:3px}
+
+/* Trend Chart */
+.trend-chart-wrap{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin-bottom:20px}
+.trend-chart-wrap h3{color:#f0f6fc;font-size:16px;margin-bottom:16px}
+.chart-container{position:relative;width:100%;height:340px}
+.chart-container canvas{width:100%!important;height:100%!important}
+.chart-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;justify-content:center}
+.chart-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#8b949e;cursor:pointer}
+.chart-legend-item .swatch{width:12px;height:12px;border-radius:3px}
+
+/* Game Theory Box */
+.gt-box{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:16px;margin-top:12px;font-size:13px;color:#8b949e}
+.gt-box strong{color:#c9d1d9}
+
+/* Section headers */
+.section-title{font-size:18px;font-weight:700;color:#f0f6fc;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #21262d}
+
+/* Responsive */
+@media(max-width:768px){
+.metrics{grid-template-columns:repeat(2,1fr)}
+.player-grid{grid-template-columns:1fr}
+.eq-grid{grid-template-columns:1fr}
+.header{flex-direction:column;align-items:flex-start}
+.chart-container{height:260px}
+}
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+<div class="ticker" id="ticker">
+<span class="critical">DAY 49: IRAN REOPENS HORMUZ — Araghchi: "completely open" for commercial vessels during ceasefire — oil PLUNGES 12%</span>
+<span class="positive">ISRAEL-LEBANON 10-DAY CEASEFIRE — takes effect 21:00 GMT — celebrations in Beirut — fireworks — 2,196 killed total</span>
+<span class="critical">Trump: US BLOCKADE ON IRAN stays "in full force" until deal signed — dual Hormuz status: Iran opens, US blocks Iran-only</span>
+<span class="warn">PARIS SUMMIT — 49 countries discuss Hormuz maritime security — Macron + Starmer host — US NOT present</span>
+<span class="positive">OIL PLUNGES: WTI ~$83 (-12%), Brent ~$89 (-10%) — S&P 500 + Nasdaq hit ALL-TIME HIGHS on peace optimism</span>
+<span class="info">Ceasefire extension "IN PRINCIPLE" agreed — 2 additional weeks beyond April 22 — Round 2 talks imminent</span>
+<span class="warn">Israel: "extensive" security zone in Lebanon — will stay — early ceasefire violations reported by Lebanese army</span>
+<!-- duplicate for seamless loop -->
+<span class="critical">DAY 49: IRAN REOPENS HORMUZ — Araghchi: "completely open" for commercial vessels during ceasefire — oil PLUNGES 12%</span>
+<span class="positive">ISRAEL-LEBANON 10-DAY CEASEFIRE — takes effect 21:00 GMT — celebrations in Beirut — fireworks — 2,196 killed total</span>
+<span class="critical">Trump: US BLOCKADE ON IRAN stays "in full force" until deal signed — dual Hormuz status: Iran opens, US blocks Iran-only</span>
+<span class="warn">PARIS SUMMIT — 49 countries discuss Hormuz maritime security — Macron + Starmer host — US NOT present</span>
+<span class="positive">OIL PLUNGES: WTI ~$83 (-12%), Brent ~$89 (-10%) — S&P 500 + Nasdaq hit ALL-TIME HIGHS on peace optimism</span>
+<span class="info">Ceasefire extension "IN PRINCIPLE" agreed — 2 additional weeks beyond April 22 — Round 2 talks imminent</span>
+<span class="warn">Israel: "extensive" security zone in Lebanon — will stay — early ceasefire violations reported by Lebanese army</span>
+</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+<div>
+<h1>Operation Epic Fury — Game Theory Dashboard <span class="day">| DAY 49</span></h1>
+<div class="meta">April 17, 2026 · Day 49 · IRAN REOPENS HORMUZ · LEBANON 10-DAY CEASEFIRE · Oil Plunges 12% · Paris Summit 49 Countries · US Blockade Stays · 5 Days to Expiry</div>
+</div>
+<div class="status-badges">
+<span class="badge green">HORMUZ REOPENED</span>
+<span class="badge green">LEBANON CEASEFIRE</span>
+<span class="badge yellow">US BLOCKADE STAYS</span>
+</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+<div class="tab active" onclick="switchTab('overview')">Overview</div>
+<div class="tab" onclick="switchTab('intel')">Intel Feed</div>
+<div class="tab" onclick="switchTab('players')">Players</div>
+<div class="tab" onclick="switchTab('payoff')">Payoff Matrix</div>
+<div class="tab" onclick="switchTab('escalation')">Escalation Ladder</div>
+<div class="tab" onclick="switchTab('sitmap')">Situation Map</div>
+<div class="tab" onclick="switchTab('equilibria')">Equilibria</div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- ============ OVERVIEW ============ -->
+<div class="panel active" id="overview">
+<div class="metrics">
+<div class="metric green"><div class="value">OPEN</div><div class="label">Iran Reopens Hormuz</div></div>
+<div class="metric green"><div class="value">CEASEFIRE</div><div class="label">Israel-Lebanon 10-Day Truce</div></div>
+<div class="metric green"><div class="value">~$83</div><div class="label">WTI Plunges 12% on Peace</div></div>
+<div class="metric red"><div class="value">BLOCKED</div><div class="label">US Blockade on Iran Stays</div></div>
+<div class="metric blue"><div class="value">49</div><div class="label">Countries at Paris Summit</div></div>
+<div class="metric green"><div class="value">ATH</div><div class="label">S&P 500 + Nasdaq Records</div></div>
+<div class="metric yellow"><div class="value">5 DAYS</div><div class="label">Ceasefire Expiry (Extension TBD)</div></div>
+<div class="metric green"><div class="value">EXTEND</div><div class="label">2-Week Extension In Principle</div></div>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#f85149"></span>Conflict Snapshot — Day 49 (IRAN REOPENS HORMUZ · LEBANON CEASEFIRE · Oil -12% · Paris Summit · US Blockade Stays · Extension In Principle)</h3>
+<p>Day 49 — the biggest day of de-escalation since the D40 ceasefire: Iran's Foreign Minister Araghchi declared the Strait of Hormuz "completely open" for all commercial vessels during the ceasefire period, triggering a 12% oil price plunge (WTI ~$83, Brent ~$89) and sending the S&P 500 and Nasdaq to all-time highs. A 10-day Israel-Lebanon ceasefire took effect at 21:00 GMT, with celebrations erupting in Beirut — though 2,196 have been killed and 1M+ displaced. Trump maintained the US blockade on Iran-bound ships "in full force" while hailing Hormuz news and saying a deal "should go very quickly." In Paris, 49 countries convened a Hormuz maritime security summit hosted by Macron and Starmer — notably WITHOUT the US — launching a "Freedom of Navigation Initiative" for post-war. A ceasefire extension of 2 additional weeks beyond April 22 was agreed "in principle." Five days remain to the original deadline.</p>
+<p style="margin-top:10px">THE TRIPLE DE-ESCALATION: Day 49 fundamentally reshapes the game. Iran's Hormuz reopening is a strategic masterstroke — Tehran demonstrates sovereign control over the strait (ships use Iran-coordinated routes) while offering massive economic relief that credits Iran with the gesture. The Lebanon ceasefire deactivates the second front that was draining Israeli and Iranian proxy resources. The ceasefire extension in principle transforms the April 22 hard deadline into an iterative negotiation window. Game theory: the structure shifts from Chicken (swerve or crash) toward a Stag Hunt (both benefit from cooperation, both lose from defection). Trump's dual stance — keeping the Iran blockade while welcoming Hormuz opening — maintains Schelling's credible threat while harvesting the goodwill. The Paris Summit introduces a NEW player dynamic: a 49-country coalition building post-war Hormuz architecture WITHOUT the US, which could constrain Washington's post-war leverage. Markets have spoken emphatically: oil -12%, equities at records = the world is pricing in peace. Probabilities: Negotiated surges +6 to 28%, Attrition drops -5 to 23%, Collapse slips -1 to 14%, Catastrophic holds at 35% (structural risks persist despite euphoria).</p>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#58a6ff"></span>Game-Theoretic Classification</h3>
+<div class="gt-box">
+<p><strong>Type:</strong> Multi-player, incomplete-information, dynamic game with asymmetric payoffs</p>
+<p style="margin-top:8px"><strong>Structure:</strong> Day 49 = TRIPLE DE-ESCALATION + STAG HUNT EMERGENCE. The game fundamentally shifts: Iran's Hormuz reopening + Lebanon ceasefire + extension in principle = three simultaneous cooperative signals. The structure transitions from Chicken/brinkmanship toward a Stag Hunt — both sides benefit from continued cooperation (deal), both suffer from defection (war resumption). Trump's asymmetric response (welcoming Hormuz, maintaining Iran blockade) is a sophisticated strategy: harvest cooperative surplus while maintaining coercive leverage. The Paris Summit introduces institutional complexity — 49 countries building Hormuz architecture without the US creates a parallel game that constrains Washington's post-war options. Iran's Hormuz reopening on own terms (coordinated routes, sovereign assertion) is simultaneously cooperative AND strategic positioning. Markets as information aggregator: oil -12% = collective assessment that peace probability has jumped dramatically. The game now has multiple equilibrium paths — all more favorable than yesterday.</p>
+<p style="margin-top:8px"><strong>Key Tensions:</strong> (1) Iran REOPENS Hormuz — Araghchi: "completely open" for commercial vessels. (2) Israel-Lebanon 10-day ceasefire takes effect — celebrations in Beirut. (3) Trump: US blockade on Iran stays "in full force" until deal. (4) Paris Summit: 49 countries discuss Hormuz maritime security WITHOUT US. (5) Oil PLUNGES 12% — WTI ~$83, Brent ~$89 — stocks at all-time highs. (6) Ceasefire extension "in principle" — 2 more weeks beyond April 22. (7) Trump: deal "should go very quickly." (8) 2,196 killed in Lebanon, 1M+ displaced. (9) Israel stays in Lebanon with "extensive" security zone — early violations. (10) Paris "Freedom of Navigation Initiative" = post-war Hormuz architecture emerging.</p>
+</div>
+</div>
+</div>
+
+<!-- ============ INTEL FEED ============ -->
+<div class="panel" id="intel">
+<div class="section-title">Intelligence Feed — Last 48 Hours</div>
+
+<div class="alert positive"><span class="time">Apr 17</span><div><strong>IRAN REOPENS STRAIT OF HORMUZ — Araghchi: "completely open" for commercial vessels during ceasefire.</strong> Ships must use coordinated route via Iran Ports & Maritime Organisation. Move linked to Israel-Lebanon ceasefire. Oil plunges 12% — WTI ~$83, Brent ~$89. Markets surge. Biggest single-day de-escalation since D40 ceasefire.</div></div>
+
+<div class="alert positive"><span class="time">Apr 17</span><div><strong>ISRAEL-LEBANON 10-DAY CEASEFIRE takes effect 21:00 GMT — celebrations in Beirut.</strong> Trump-brokered deal. "Intended to enable good-faith negotiations toward permanent security and peace agreement." 2,196 killed in Lebanon since war began. 1M+ displaced. Hezbollah: "caution and vigilance." Netanyahu: IDF stays with "extensive" security zone.</div></div>
+
+<div class="alert critical"><span class="time">Apr 17</span><div><strong>TRUMP: US BLOCKADE ON IRAN stays "in full force" until deal signed.</strong> Dual Hormuz status: Iran declares strait open for commercial vessels; US maintains blockade targeting Iran-bound/Iran-origin ships only. Trump: deal "should go very quickly." Coercive leverage maintained while diplomatic corridor opens. CENTCOM enforcement continues.</div></div>
+
+<div class="alert warning"><span class="time">Apr 17</span><div><strong>PARIS SUMMIT — 49 countries discuss Hormuz maritime security.</strong> Macron + Starmer host. US NOT present. "Strait of Hormuz Maritime Freedom of Navigation Initiative" launched — multinational defensive mission planned for post-conflict. Implementation contingent on definitive cessation of hostilities. Parallel diplomatic track outside US control.</div></div>
+
+<div class="alert positive"><span class="time">Apr 17</span><div><strong>OIL PLUNGES: WTI ~$83 (-12%), Brent ~$89 (-10%) — S&P 500 + Nasdaq ALL-TIME HIGHS.</strong> Largest single-day oil drop since war began. Heating oil -11%, gas futures -6%. Markets pricing in rapid peace deal. Investor euphoria. IEA supply shock fears easing. Global economic relief palpable.</div></div>
+
+<div class="alert info"><span class="time">Apr 17</span><div><strong>Ceasefire EXTENSION "in principle" agreed — 2 additional weeks beyond April 22.</strong> AP: Washington and Tehran gave in-principle agreement. US official (Reuters): not formally agreed yet. Round 2 talks imminent with Hormuz opening as goodwill gesture. Nuclear + sanctions remain key sticking points. Extension buys time for framework.</div></div>
+
+<div class="alert info"><span class="time">Apr 17</span><div><strong>Key context (Days 40-49):</strong> D40: ceasefire. D41-43: Islamabad talks. D44: talks collapse + blockade. D45-46: blockade enforcement. D47: blockade full + Round 2 signal. D48: Munir in Tehran + Hegseth "reloading." D49: IRAN REOPENS HORMUZ + LEBANON CEASEFIRE + Paris Summit 49 countries + oil plunges 12% + extension in principle. Biggest day of de-escalation since D40.</div></div>
+</div>
+
+<!-- ============ PLAYERS ============ -->
+<div class="panel" id="players">
+<div class="section-title">Strategic Actors</div>
+<div class="player-grid">
+
+<div class="player-card">
+<h4><span class="flag">🇺🇸</span> United States</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>98%</span></div><div class="bar"><div class="fill mil" style="width:98%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>82%</span></div><div class="bar"><div class="fill eco" style="width:82%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>50%</span></div><div class="bar"><div class="fill dip" style="width:50%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>58%</span></div><div class="bar"><div class="fill dom" style="width:58%"></div></div></div>
+<div class="player-update"><strong>Day 49:</strong> DUAL STRATEGY VICTORY — Lebanon ceasefire + Hormuz reopening achieved WITHOUT lifting Iran blockade. Trump: deal "should go very quickly." US blockade on Iran stays "in full force." Coercive leverage maintained while de-escalation proceeds on other fronts. Oil plunges = economic pressure easing for US allies. Paris Summit exclusion = risk of losing control of Hormuz post-war architecture.</div>
+<div class="strategies"><span class="strat-tag">Sustained Air Campaign</span><span class="strat-tag">Covert Kurdish Support</span><span class="strat-tag">Naval Dominance</span><span class="strat-tag">Demand Surrender</span><span class="strat-tag">Tanker Insurance</span><span class="strat-tag">Indian Ocean Ops</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇮🇱</span> Israel</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>88%</span></div><div class="bar"><div class="fill mil" style="width:88%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>60%</span></div><div class="bar"><div class="fill eco" style="width:60%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>42%</span></div><div class="bar"><div class="fill dip" style="width:42%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>73%</span></div><div class="bar"><div class="fill dom" style="width:73%"></div></div></div>
+<div class="player-update"><strong>Day 49:</strong> 10-DAY LEBANON CEASEFIRE — Netanyahu agreed but IDF stays with "extensive" security zone to Syrian border. Early ceasefire violations reported by Lebanese army. Hezbollah: "caution and vigilance." 2,196 killed, 1M+ displaced. Israel may lose pretext for Lebanon ops if Iran deal follows. IDF resisting withdrawal pressure.</div>
+<div class="strategies"><span class="strat-tag">Operation Roaring Lion</span><span class="strat-tag">Lebanon Ground Ops</span><span class="strat-tag">Decapitation Strikes</span><span class="strat-tag">Mossad Kurdish Plan</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇮🇷</span> Iran / IRGC</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>22%</span></div><div class="bar"><div class="fill mil" style="width:28%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>18%</span></div><div class="bar"><div class="fill eco" style="width:25%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>48%</span></div><div class="bar"><div class="fill dip" style="width:48%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>32%</span></div><div class="bar"><div class="fill dom" style="width:32%"></div></div></div>
+<div class="player-update"><strong>Day 49:</strong> IRAN REOPENS HORMUZ — Araghchi: "completely open" for commercial vessels. Strategic masterstroke: Iran demonstrates goodwill + sovereign control over strait simultaneously. Ships must use Iran-coordinated routes. US blockade on Iran-only stays. Oil plunges = Iran concession credited for global relief. Ceasefire extension in principle. 10-point plan still on table.</div>
+<div class="strategies"><span class="strat-tag">Strait Closure</span><span class="strat-tag">Proxy Activation</span><span class="strat-tag">Pezeshkian Signaling</span><span class="strat-tag">CIA Backchannel</span><span class="strat-tag">Nuclear Ambiguity</span><span class="strat-tag">Asymmetric Ops</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇸🇦</span> Saudi Arabia / Gulf States</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>55%</span></div><div class="bar"><div class="fill mil" style="width:55%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>78%</span></div><div class="bar"><div class="fill eco" style="width:78%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>58%</span></div><div class="bar"><div class="fill dip" style="width:58%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>68%</span></div><div class="bar"><div class="fill dom" style="width:68%"></div></div></div>
+<div class="player-update"><strong>Day 49:</strong> Gulf RELIEF — Hormuz reopened for commercial vessels. Oil plunges to ~$83 WTI. Gulf shipping resuming on Iran-coordinated routes. Paris Summit = 49 countries planning post-war maritime security. GCC economies begin stabilizing. Extension in principle = more time. But US blockade on Iran stays = continued disruption for Iran-dependent trade.</div>
+<div class="strategies"><span class="strat-tag">Active Defense</span><span class="strat-tag">Coalition Support</span><span class="strat-tag">Oil Market Mgmt</span><span class="strat-tag">Diplomatic Hedging</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇷🇺</span>🇨🇳 Russia / China</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>75%</span></div><div class="bar"><div class="fill mil" style="width:75%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>70%</span></div><div class="bar"><div class="fill eco" style="width:70%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>65%</span></div><div class="bar"><div class="fill dip" style="width:65%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>70%</span></div><div class="bar"><div class="fill dom" style="width:70%"></div></div></div>
+<div class="player-update"><strong>Day 49:</strong> Paris Summit: 49 countries WITHOUT US discuss Hormuz maritime security. Macron + Starmer host. China watching — parallel architecture excluding Washington. "Freedom of Navigation Initiative" = post-war multinational presence. Beijing supports multilateral approach. Russia benefits from oil volatility. Great power realignment accelerating around Hormuz.</div>
+<div class="strategies"><span class="strat-tag">Intel Sharing</span><span class="strat-tag">UNSC Diplomacy</span><span class="strat-tag">Strategic Patience</span><span class="strat-tag">Tech Transfer</span><span class="strat-tag">Indirect Support</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🏔️</span> Kurdish Forces (CPFIK)</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>40%</span></div><div class="bar"><div class="fill mil" style="width:40%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>10%</span></div><div class="bar"><div class="fill eco" style="width:10%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>32%</span></div><div class="bar"><div class="fill dip" style="width:32%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>60%</span></div><div class="bar"><div class="fill dom" style="width:60%"></div></div></div>
+<div class="player-update"><strong>Day 49:</strong> Kurdish front frozen. Lebanon ceasefire + Hormuz reopening + extension = comprehensive de-escalation. Kurdish operations indefinitely off table. Commanders ordered to stand down. CIA liaison in maintenance mode. Kurdistan regional government pivoting to post-war positioning.</div>
+<div class="strategies"><span class="strat-tag">Ground Offensive</span><span class="strat-tag">Western Front</span><span class="strat-tag">Self-Determination</span><span class="strat-tag">Regime Destabilization</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇹🇷</span> Turkey / NATO</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>70%</span></div><div class="bar"><div class="fill mil" style="width:70%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>48%</span></div><div class="bar"><div class="fill eco" style="width:48%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>58%</span></div><div class="bar"><div class="fill dip" style="width:58%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>52%</span></div><div class="bar"><div class="fill dom" style="width:52%"></div></div></div>
+<div class="player-update"><strong>Day 49:</strong> Turkey at Paris Summit. Erdogan positioning for post-war Hormuz architecture. NATO still silent. Turkish economy benefits from oil plunge. Ankara offered as Round 2 venue. Turkey + Pakistan + Egypt mediation coalition strengthening. Ceasefire extension = Turkey's diplomatic window expanding.</div>
+<div class="strategies"><span class="strat-tag">Self-Defense</span><span class="strat-tag">Art. 5 Invocation</span><span class="strat-tag">Anti-Kurdish Posture</span><span class="strat-tag">Border Security</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇪🇺</span> European NATO</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>58%</span></div><div class="bar"><div class="fill mil" style="width:58%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>62%</span></div><div class="bar"><div class="fill eco" style="width:62%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>55%</span></div><div class="bar"><div class="fill dip" style="width:55%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>38%</span></div><div class="bar"><div class="fill dom" style="width:38%"></div></div></div>
+<div class="player-update"><strong>Day 49:</strong> MASSIVE RELIEF — oil plunges 12%. S&P 500 + Nasdaq all-time highs. Hormuz reopening = supply fears easing. Brent ~$89. EU at Paris Summit — 49 countries planning post-war maritime security. Energy rationing cancelled. Von der Leyen: EU will support any framework. Continental economies recovering. IEA supply shock receding.</div>
+<div class="strategies"><span class="strat-tag">E. Med Missile Shield</span><span class="strat-tag">Citizen Evacuation</span><span class="strat-tag">Diplomatic Mediation</span><span class="strat-tag">Cautious Engagement</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🟡</span> Hezbollah / Proxies</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>38%</span></div><div class="bar"><div class="fill mil" style="width:38%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>8%</span></div><div class="bar"><div class="fill eco" style="width:8%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>12%</span></div><div class="bar"><div class="fill dip" style="width:12%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>25%</span></div><div class="bar"><div class="fill dom" style="width:25%"></div></div></div>
+<div class="player-update"><strong>Day 49:</strong> LEBANON CEASEFIRE = Hezbollah breathing room. 10-day truce. 2,196 killed since Mar 2. Hezbollah approaches with "caution and vigilance." Iran 10-point plan includes Hezbollah protection — now partially achieved via Lebanon ceasefire. Displaced families returning. But IDF stays with "extensive" security zone. Netanyahu: fight "not over."</div>
+<div class="strategies"><span class="strat-tag">Missile Barrages</span><span class="strat-tag">Drone Swarms</span><span class="strat-tag">Asymmetric Attrition</span><span class="strat-tag">Regional Proxy Ops</span></div>
+</div>
+
+<div class="player-card">
+<h4><span class="flag">🇦🇿</span> Azerbaijan</h4>
+<div class="power-bar"><div class="label-row"><span>Military</span><span>45%</span></div><div class="bar"><div class="fill mil" style="width:45%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Economic</span><span>40%</span></div><div class="bar"><div class="fill eco" style="width:40%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Diplomatic</span><span>35%</span></div><div class="bar"><div class="fill dip" style="width:22%"></div></div></div>
+<div class="power-bar"><div class="label-row"><span>Domestic</span><span>60%</span></div><div class="bar"><div class="fill dom" style="width:60%"></div></div></div>
+<div class="player-update"><strong>Day 49:</strong> Regional actors celebrating Hormuz reopening. Azerbaijan monitoring. Ceasefire extension in principle = regional stabilization. Paris Summit = 49 countries planning post-war architecture. All regional actors repositioning for peace scenario. Oil plunge benefits consumers. Blockade on Iran continues but commercial strait traffic resuming.</div>
+<div class="strategies"><span class="strat-tag">Border Deployment</span><span class="strat-tag">Opportunistic Expansion</span><span class="strat-tag">Self-Defense</span></div>
+</div>
+
+</div>
+</div>
+
+<!-- ============ PAYOFF MATRIX ============ -->
+<div class="panel" id="payoff">
+<div class="section-title">Interactive Payoff Matrices</div>
+<div class="card">
+<div class="matrix-selector">
+<label>Select Dyad: </label>
+<select id="matrixSelect" onchange="showMatrix(this.value)">
+<option value="m1">USA vs Iran — Strait of Hormuz</option>
+<option value="m2">USA vs Iran — Nuclear Escalation</option>
+<option value="m3">Iran vs Gulf States — Interceptor Depletion</option>
+<option value="m4">European NATO vs Iran — Eastern Med</option>
+<option value="m5">USA vs Russia/China — Diplomatic/Material Support</option>
+</select>
+</div>
+
+<div id="m1" class="matrix-container">
+<p style="margin-bottom:12px;font-size:13px;color:#8b949e">Row: USA | Column: Iran · Payoffs = (USA, Iran)</p>
+<table class="matrix-table">
+<tr><th></th><th>Iran: Keep Strait Open</th><th>Iran: Partial Blockade</th><th>Iran: Full Closure</th></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Diplomatic Pressure</td><td class="pareto">(+3, +2)</td><td>(-1, +1)</td><td>(-3, -1)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Naval Escort</td><td>(+2, 0)</td><td class="nash">(0, -1)</td><td>(-2, -3)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Destroy Coastal Batteries</td><td>(+4, -3)</td><td>(+2, -4)</td><td class="nash">(-1, -5)</td></tr>
+</table>
+<div class="matrix-legend">
+<span><span class="sq" style="background:rgba(88,166,255,.3)"></span> Nash Equilibrium</span>
+<span><span class="sq" style="background:rgba(63,185,80,.3)"></span> Pareto Optimal</span>
+</div>
+<div class="gt-box" style="margin-top:12px">
+<strong>Day 49:</strong> GAME-CHANGING — Hormuz reopened + Lebanon ceasefire + extension in principle. Triple de-escalation. Trump: "should go very quickly." But US blockade on Iran stays = coercive leverage maintained. Schelling: credible threat + demonstrated goodwill = optimal bargaining position. Round 2 expected within days. Framework probability highest since D40. 5 days.
+</div>
+</div>
+
+<div id="m2" class="matrix-container" style="display:none">
+<p style="margin-bottom:12px;font-size:13px;color:#8b949e">Row: USA | Column: Iran · Payoffs = (USA, Iran)</p>
+<table class="matrix-table">
+<tr><th></th><th>Iran: Abandon Nuclear</th><th>Iran: Covert Development</th><th>Iran: Weaponize</th></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Accept Deal</td><td class="pareto">(+3, +3)</td><td>(-2, +4)</td><td>(-5, +2)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Continued Strikes</td><td>(+4, -2)</td><td class="nash">(+1, -1)</td><td>(-2, -3)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Regime Change</td><td>(+2, -5)</td><td>(+1, -4)</td><td class="nash">(-3, -5)</td></tr>
+</table>
+<div class="matrix-legend">
+<span><span class="sq" style="background:rgba(88,166,255,.3)"></span> Nash Equilibrium</span>
+<span><span class="sq" style="background:rgba(63,185,80,.3)"></span> Pareto Optimal</span>
+</div>
+<div class="gt-box" style="margin-top:12px">
+<strong>Day 49:</strong> Iran Hormuz opening = strategic concession without conceding nuclear. 10-point plan still demands nuclear guarantees + Hormuz toll rights. Extension buys time for technical talks. Dismantling scope remains key. Iran demonstrated control over strait (opened on own terms) — strengthens bargaining position on nuclear. Vance Round 2 imminent.
+
+</div>
+</div>
+
+<div id="m3" class="matrix-container" style="display:none">
+<p style="margin-bottom:12px;font-size:13px;color:#8b949e">Row: Iran | Column: Gulf States · Payoffs = (Iran, Gulf)</p>
+<table class="matrix-table">
+<tr><th></th><th>Gulf: Conserve Interceptors</th><th>Gulf: Full Defense</th><th>Gulf: Counter-Strike</th></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">Iran: Limited Probes</td><td>(+1, +1)</td><td class="pareto">(0, +2)</td><td>(-2, +1)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">Iran: Sustained Barrages</td><td>(+2, -3)</td><td class="nash">(-1, -1)</td><td>(-3, 0)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">Iran: Mass Saturation</td><td>(+1, -5)</td><td>(-2, -3)</td><td class="nash">(-4, -2)</td></tr>
+</table>
+<div class="matrix-legend">
+<span><span class="sq" style="background:rgba(88,166,255,.3)"></span> Nash Equilibrium</span>
+<span><span class="sq" style="background:rgba(63,185,80,.3)"></span> Pareto Optimal</span>
+</div>
+<div class="gt-box" style="margin-top:12px">
+<strong>Day 49:</strong> DUAL STATUS — Iran declares Hormuz open for commercial traffic; US blockade on Iran-only stays. Oil plunges 12% — WTI ~$83, Brent ~$89. Gulf shipping resuming on coordinated routes. GCC relief massive. Paris Summit = 49 countries planning post-war maritime architecture. US risks losing Hormuz institutional control if excluded.
+
+</div>
+</div>
+
+<div id="m4" class="matrix-container" style="display:none">
+<p style="margin-bottom:12px;font-size:13px;color:#8b949e">Row: European NATO | Column: Iran · Payoffs = (EU-NATO, Iran)</p>
+<table class="matrix-table">
+<tr><th></th><th>Iran: De-escalate Med</th><th>Iran: Missile Overflight</th><th>Iran: Target NATO Assets</th></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">EU: Defensive Only</td><td class="pareto">(+3, +1)</td><td class="nash">(0, 0)</td><td>(-3, -1)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">EU: Active Interception</td><td>(+2, -1)</td><td>(+1, -2)</td><td class="nash">(-1, -4)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">EU: Offensive Ops</td><td>(+1, -3)</td><td>(0, -4)</td><td>(-2, -5)</td></tr>
+</table>
+<div class="matrix-legend">
+<span><span class="sq" style="background:rgba(88,166,255,.3)"></span> Nash Equilibrium</span>
+<span><span class="sq" style="background:rgba(63,185,80,.3)"></span> Pareto Optimal</span>
+</div>
+<div class="gt-box" style="margin-top:12px">
+<strong>Day 49:</strong> OIL PLUNGES 12% — WTI ~$83, Brent ~$89. S&P 500 + Nasdaq ALL-TIME HIGHS. Largest single-day market move since war began. Hormuz reopening + Lebanon ceasefire = supply fears receding. IEA: historic supply shock easing. EU at Paris Summit. Energy rationing cancelled. Continental economies entering recovery mode.
+
+</div>
+</div>
+
+<div id="m5" class="matrix-container" style="display:none">
+<p style="margin-bottom:12px;font-size:13px;color:#8b949e">Row: USA | Column: Russia/China · Payoffs = (USA, Rus/Chi)</p>
+<table class="matrix-table">
+<tr><th></th><th>R/C: Verbal Condemnation</th><th>R/C: Intel + Tech Support</th><th>R/C: Direct Material Aid</th></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Ignore</td><td class="pareto">(+2, +2)</td><td>(-1, +3)</td><td>(-3, +3)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Diplomatic Warning</td><td>(+3, +1)</td><td class="nash">(0, +1)</td><td>(-2, 0)</td></tr>
+<tr><td style="font-weight:600;background:#21262d;color:#f0f6fc">USA: Sanctions/Retaliation</td><td>(+1, -2)</td><td>(+1, -1)</td><td class="nash">(-1, -3)</td></tr>
+</table>
+<div class="matrix-legend">
+<span><span class="sq" style="background:rgba(88,166,255,.3)"></span> Nash Equilibrium</span>
+<span><span class="sq" style="background:rgba(63,185,80,.3)"></span> Pareto Optimal</span>
+</div>
+<div class="gt-box" style="margin-top:12px">
+<strong>Day 49:</strong> Paris Summit = 49 countries WITHOUT US planning Hormuz maritime security. Macron + Starmer host "Freedom of Navigation Initiative." China supports multilateral approach. US exclusion = risk of losing institutional control over post-war Hormuz. Russia benefits from realignment. Great power competition shifting to post-war architecture.
+
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- ============ ESCALATION LADDER ============ -->
+<div class="panel" id="escalation">
+<div class="section-title">Schelling Escalation Ladder</div>
+<div class="escalation-ladder">
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num low">1</div>
+<div class="rung-title">Diplomatic Crisis</div>
+<span class="rung-marker badge blue">PASSED</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Breakdown of negotiations, recall of ambassadors, UNSC deadlock. <strong>Status:</strong> Passed — Geneva talks collapsed late February. Araghchi had said "historic" deal was "within reach" before strikes began.</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num low">2</div>
+<div class="rung-title">Covert Operations / Cyber Warfare</div>
+<span class="rung-marker badge blue">PASSED</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Sabotage, cyber attacks, assassinations, intelligence operations. <strong>Status:</strong> Passed — extensive cyber ops confirmed (Flashpoint), Mossad/CIA Kurdish coordination, space capabilities targeted, Iranian drones using Russian-provided intel.</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num med">3</div>
+<div class="rung-title">Limited Strikes on Military Targets</div>
+<span class="rung-marker badge blue">PASSED</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Precision strikes against military infrastructure, air defense, nuclear facilities. <strong>Status:</strong> Passed Day 1 — B-2 penetrator strikes on deeply buried missile launchers and nuclear sites. CSIS confirms "remnants" of nuclear program survive.</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num med">4</div>
+<div class="rung-title">Sustained Air/Naval Campaign</div>
+<span class="rung-marker badge blue">PASSED</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Extended bombing campaign, naval engagements, air superiority, destruction of enemy navy. <strong>Status:</strong> Passed — 200+ targets hit in 72hrs, 30+ ships sunk, IRIS Dena sunk in Indian Ocean, total air dominance. Iran's navy effectively destroyed.</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num med">5</div>
+<div class="rung-title">Leadership Decapitation / Regime Targeting</div>
+<span class="rung-marker badge blue">PASSED</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Targeting of political/military leadership, government infrastructure, command and control. <strong>Status:</strong> Passed Day 1 — Supreme Leader Khamenei killed. Mojtaba Khamenei named dynastic successor. 12 waves of strikes on IRGC, Basij, Internal Security C2.</div>
+</div>
+
+<div class="rung current open" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num high">7</div>
+<div class="rung-title">Economic Infrastructure War + Energy MAD</div>
+<span class="rung-marker badge yellow">◉ CURRENT — DAY 49 (HORMUZ REOPENED)</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">
+<p>Deliberate targeting of economic/energy infrastructure + mutual destruction threats on energy systems.</p>
+<p style="margin-top:8px"><strong>Day 49 — TRIPLE DE-ESCALATION:</strong> Iran REOPENS Hormuz for commercial vessels. Israel-Lebanon 10-day ceasefire. Oil plunges 12%. Paris Summit 49 countries. US blockade on Iran stays. Extension in principle. Trump: "should go very quickly." Biggest de-escalation since D40. Economic warfare shifting to diplomatic framework. 5 days to April 22.</p>
+
+</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num high">8</div>
+<div class="rung-title">Ground Invasion / Occupation</div>
+<span class="rung-marker badge yellow">PARTIALLY ACTIVE</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Large-scale ground forces committed, territorial occupation, urban warfare. <strong>Status:</strong> DE-ESCALATING — Hormuz reopened, Lebanon ceasefire, extension in principle. Ground invasion scenario receding rapidly. Trump: deal "should go very quickly." Hegseth "reloading" threat now background leverage. If Round 2 succeeds, ground ops off table permanently. 5 days.</div>
+</div>
+
+<div class="rung" onclick="toggleRung(this)">
+<div class="rung-header">
+<div class="rung-num extreme">9</div>
+<div class="rung-title">WMD Use / Catastrophic Escalation</div>
+<span class="rung-marker badge yellow">ELEVATED RISK</span>
+<span class="chevron">▼</span>
+</div>
+<div class="rung-body">Use of weapons of mass destruction, nuclear detonation, or great-power direct confrontation. <strong>Status:</strong> STRUCTURALLY PERSISTENT — Despite massive de-escalation, catastrophic holds at 35%. US blockade on Iran stays. Paris Summit excludes US (parallel architecture risk). Early Lebanon ceasefire violations. Netanyahu: fight "not over." Iran demonstrated Hormuz control (can re-close). Nuclear unresolved. Markets may be pricing in peace prematurely. Extension in principle but not formal.</div>
+</div>
+
+</div>
+</div>
+
+<!-- ============ SITUATION MAP ============ -->
+<div class="panel" id="sitmap">
+<div class="section-title">Situation Map — Day 49 Theater Overview</div>
+<div class="card" style="padding:10px;overflow:hidden">
+<div style="position:relative;width:100%;background:#0d1117;border-radius:8px;overflow:hidden">
+<svg viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:-apple-system,sans-serif">
+<rect width="1000" height="700" fill="#0a1628"/>
+<!-- Persian Gulf -->
+<path d="M400,380 Q450,350 520,340 Q580,330 630,350 Q680,370 700,400 Q720,430 710,460 Q690,490 660,500 Q620,510 580,495 Q540,480 500,470 Q460,460 430,440 Q410,420 400,380Z" fill="#0f2440" stroke="#1a3a5c" stroke-width="1"/>
+<!-- Gulf of Oman -->
+<path d="M710,460 Q740,470 780,450 Q820,430 860,440 Q900,455 940,470 L940,520 Q900,510 860,500 Q820,490 780,500 Q740,510 710,500Z" fill="#0f2440" stroke="#1a3a5c" stroke-width="1"/>
+<!-- Mediterranean -->
+<path d="M0,180 Q100,160 200,170 Q300,175 400,165 Q450,160 480,170 L480,220 Q450,230 400,225 Q300,230 200,225 Q100,220 0,230Z" fill="#0f2440" stroke="#1a3a5c" stroke-width="1"/>
+<!-- Iran -->
+<path d="M520,200 Q580,180 650,190 Q720,200 780,230 Q830,260 860,300 Q880,340 870,380 Q850,420 820,440 Q780,450 740,440 Q710,460 700,400 Q680,370 630,350 Q580,330 520,340 Q480,330 460,300 Q450,270 470,240 Q490,220 520,200Z" fill="#1a2332" stroke="#30363d" stroke-width="1.5"/>
+<text x="660" y="300" fill="#c9d1d9" font-size="16" font-weight="700" text-anchor="middle">IRAN</text>
+<!-- Iraq -->
+<path d="M380,200 Q420,190 460,200 Q480,220 470,240 Q460,270 460,300 Q480,330 520,340 Q500,350 480,360 Q450,370 430,360 Q400,340 380,310 Q370,280 375,250 Q378,230 380,200Z" fill="#1a2332" stroke="#30363d" stroke-width="1.5"/>
+<text x="430" y="280" fill="#8b949e" font-size="12" font-weight="600" text-anchor="middle">IRAQ</text>
+<!-- Saudi Arabia -->
+<path d="M300,350 Q350,340 400,380 Q430,440 500,470 Q540,480 560,500 Q540,540 500,570 Q450,600 380,610 Q310,600 260,570 Q230,540 220,500 Q215,460 225,420 Q240,380 270,360Z" fill="#1a2332" stroke="#30363d" stroke-width="1.5"/>
+<text x="380" y="510" fill="#8b949e" font-size="13" font-weight="600" text-anchor="middle">SAUDI ARABIA</text>
+<!-- Turkey -->
+<path d="M280,160 Q350,140 420,150 Q460,155 480,170 Q480,190 460,200 Q420,190 380,200 Q340,205 300,200 Q270,195 260,180Z" fill="#1a2332" stroke="#30363d" stroke-width="1.5"/>
+<text x="380" y="175" fill="#8b949e" font-size="11" font-weight="600" text-anchor="middle">TURKEY</text>
+<!-- Israel/Lebanon -->
+<rect x="265" y="210" width="30" height="50" rx="4" fill="#1a2332" stroke="#30363d" stroke-width="1"/>
+<text x="280" y="230" fill="#8b949e" font-size="8" font-weight="600" text-anchor="middle">LEB</text>
+<text x="280" y="252" fill="#8b949e" font-size="8" font-weight="600" text-anchor="middle">ISR</text>
+<!-- UAE/Qatar/Kuwait/Bahrain -->
+<ellipse cx="660" cy="480" rx="40" ry="20" fill="#1a2332" stroke="#30363d" stroke-width="1"/>
+<text x="660" y="484" fill="#8b949e" font-size="8" font-weight="600" text-anchor="middle">UAE</text>
+<circle cx="465" cy="375" r="12" fill="#1a2332" stroke="#30363d" stroke-width="1"/>
+<text x="465" y="378" fill="#8b949e" font-size="7" font-weight="600" text-anchor="middle">KWT</text>
+<ellipse cx="570" cy="430" rx="12" ry="18" fill="#1a2332" stroke="#30363d" stroke-width="1"/>
+<text x="570" y="434" fill="#8b949e" font-size="7" font-weight="600" text-anchor="middle">QAT</text>
+
+<!-- STRAIT OF HORMUZ -->
+<line x1="700" y1="440" x2="730" y2="465" stroke="#f85149" stroke-width="3" stroke-dasharray="6,3"/>
+<text x="745" y="445" fill="#f85149" font-size="9" font-weight="700">STRAIT OF HORMUZ</text>
+<text x="745" y="458" fill="#ffa198" font-size="7" font-style="italic">HORMUZ OPEN (Iran) — ~15 SHIPS</text>
+<text x="745" y="468" fill="#ffa198" font-size="7" font-style="italic">US blockade on Iran stays</text>
+
+<!-- Tehran pulsing marker -->
+<circle cx="640" cy="260" r="14" fill="none" stroke="#f85149" stroke-width="2.5" stroke-dasharray="4,2">
+<animate attributeName="r" values="12;18;12" dur="2s" repeatCount="indefinite"/>
+<animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
+</circle>
+<text x="640" y="264" fill="#f85149" font-size="8" font-weight="700" text-anchor="middle">TEHRAN</text>
+<text x="640" y="244" fill="#ffa198" font-size="7" text-anchor="middle">10,000+ targets struck</text>
+
+<!-- NATANZ marker -->
+<circle cx="620" cy="310" r="8" fill="none" stroke="#a371f7" stroke-width="2.5" stroke-dasharray="3,2">
+<animate attributeName="r" values="6;12;6" dur="1.8s" repeatCount="indefinite"/>
+</circle>
+<text x="620" y="328" fill="#a371f7" font-size="7" font-weight="700" text-anchor="middle">NATANZ</text>
+<text x="620" y="336" fill="#d2a8ff" font-size="6" text-anchor="middle">struck D22</text>
+
+<!-- DIMONA marker -->
+<circle cx="285" cy="265" r="6" fill="none" stroke="#d29922" stroke-width="2">
+<animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/>
+</circle>
+<text x="300" y="268" fill="#d29922" font-size="7" font-weight="700">DIMONA</text>
+<text x="300" y="278" fill="#e3b341" font-size="6">180 injured D22-23</text>
+
+<!-- Iran-Israel strike arrows -->
+<line x1="560" y1="260" x2="310" y2="235" stroke="#d29922" stroke-width="1.5" marker-end="url(#arrowY)"/>
+<text x="420" y="225" fill="#d29922" font-size="8" font-weight="600">Iran → Dimona + Haifa</text>
+<text x="420" y="235" fill="#e3b341" font-size="7">Lebanon ceasefire D49</text>
+
+<!-- Lebanon front -->
+<text x="255" y="218" fill="#d29922" font-size="7" font-weight="600">1,676+</text>
+<text x="255" y="226" fill="#d29922" font-size="6">killed LEB</text>
+
+<!-- Iran attacks on Gulf -->
+<line x1="580" y1="340" x2="540" y2="405" stroke="#f85149" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arrowR)"/>
+<line x1="600" y1="350" x2="660" y2="470" stroke="#f85149" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arrowR)"/>
+<line x1="520" y1="340" x2="465" y2="365" stroke="#f85149" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arrowR)"/>
+
+<!-- South Pars -->
+<circle cx="690" cy="405" r="7" fill="none" stroke="#f85149" stroke-width="2"/>
+<text x="660" y="398" fill="#f85149" font-size="6" font-weight="700">SOUTH PARS</text>
+
+<!-- Caspian Sea -->
+<text x="650" y="195" fill="#58a6ff" font-size="7" font-weight="700">CASPIAN SEA</text>
+<text x="650" y="204" fill="#79c0ff" font-size="6">1st strikes D20</text>
+
+<!-- Info boxes -->
+<rect x="20" y="20" width="200" height="55" rx="6" fill="rgba(248,81,73,0.15)" stroke="#f85149" stroke-width="1"/>
+<text x="30" y="38" fill="#f85149" font-size="10" font-weight="700">HORMUZ REOPENED — DAY 49</text>
+<text x="30" y="52" fill="#ffa198" font-size="9">LEBANON CEASEFIRE</text>
+<text x="30" y="64" fill="#8b949e" font-size="8">Trump: deal "very quickly"</text>
+
+<rect x="20" y="85" width="160" height="40" rx="6" fill="rgba(248,81,73,0.1)" stroke="#f85149" stroke-width="1"/>
+<text x="30" y="102" fill="#f85149" font-size="10" font-weight="700">BRENT: ~$89/bbl</text>
+<text x="30" y="115" fill="#ffa198" font-size="8">Oil PLUNGES 12% — Hormuz open</text>
+
+<rect x="20" y="135" width="180" height="40" rx="6" fill="rgba(88,166,255,0.1)" stroke="#58a6ff" stroke-width="1"/>
+<text x="30" y="152" fill="#58a6ff" font-size="10" font-weight="700">HORMUZ OPEN (Iran)</text>
+<text x="30" y="165" fill="#79c0ff" font-size="8">Commercial traffic resuming</text>
+
+<!-- Diego Garcia indicator -->
+<rect x="810" y="520" width="170" height="50" rx="6" fill="rgba(210,153,34,0.15)" stroke="#d29922" stroke-width="1"/>
+<text x="820" y="538" fill="#d29922" font-size="9" font-weight="700">DIEGO GARCIA (Indian O.)</text>
+<text x="820" y="552" fill="#e3b341" font-size="7">Iran missiles D22</text>
+<text x="820" y="562" fill="#e3b341" font-size="7">Intercontinental range</text>
+
+<!-- Casualty box -->
+<rect x="810" y="20" width="170" height="80" rx="6" fill="rgba(248,81,73,0.1)" stroke="#f85149" stroke-width="1"/>
+<text x="820" y="38" fill="#f85149" font-size="10" font-weight="700">CASUALTIES (Day 49)</text>
+<text x="820" y="54" fill="#ffa198" font-size="9">Iran: 2,200+ killed est.</text>
+<text x="820" y="67" fill="#ffa198" font-size="9">Lebanon: 2,196 killed</text>
+<text x="820" y="80" fill="#ffa198" font-size="9">Oil ~$83 WTI | 5 days to Apr 22</text>
+<text x="820" y="93" fill="#ffa198" font-size="9">US: 13 KIA, 380+ WIA | ISR: 25+</text>
+
+<!-- Arrow markers -->
+<defs>
+<marker id="arrowR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#f85149"/></marker>
+<marker id="arrowY" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#d29922"/></marker>
+</defs>
+
+<!-- Legend -->
+<rect x="810" y="580" width="170" height="80" rx="6" fill="rgba(22,27,34,0.8)" stroke="#30363d" stroke-width="1"/>
+<text x="820" y="598" fill="#f0f6fc" font-size="9" font-weight="700">LEGEND</text>
+<line x1="820" y1="610" x2="840" y2="610" stroke="#f85149" stroke-width="2"/><text x="845" y="614" fill="#8b949e" font-size="8">US/Israel strikes</text>
+<line x1="820" y1="626" x2="840" y2="626" stroke="#d29922" stroke-width="2"/><text x="845" y="630" fill="#8b949e" font-size="8">Iran/proxy attacks</text>
+<line x1="820" y1="642" x2="840" y2="642" stroke="#a371f7" stroke-width="2"/><text x="845" y="646" fill="#8b949e" font-size="8">Nuclear sites</text>
+<circle cx="830" cy="658" r="5" fill="none" stroke="#f85149" stroke-width="1.5"/><text x="845" y="662" fill="#8b949e" font-size="8">Active combat zone</text>
+</svg>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#f85149"></span>Active Fronts — Day 49</h3>
+<div class="gt-box">
+<p><strong>1. Iran Mainland:</strong> HORMUZ REOPENED — Araghchi: "completely open." US blockade on Iran-only stays. Extension in principle. Trump: "should go very quickly." Round 2 imminent. Oil -12%. Dual status: commercial traffic flows, Iran trade still blocked. 5 days to April 22. Biggest de-escalation since D40.</p>
+<p style="margin-top:6px"><strong>2. Hormuz:</strong> DUAL STATUS — Iran declares strait open for ALL commercial vessels (coordinated routes). US blockade targets Iran-bound/origin ships ONLY. Oil plunges 12% — WTI ~$83, Brent ~$89. Paris Summit: 49 countries plan "Freedom of Navigation Initiative" for post-war. Shipping resuming on Iran-coordinated lanes. Mines still present in some areas.</p>
+<p style="margin-top:6px"><strong>3. Gulf:</strong> MASSIVE RELIEF — Hormuz reopened for commercial traffic. Oil plunges. Gulf shipping resuming. GCC economies stabilizing. Paris Summit = post-war architecture. Extension in principle gives more negotiation time. IMF may revise forecasts upward. Regional crisis receding fastest since D40.</p>
+<p style="margin-top:6px"><strong>4. Lebanon:</strong> 10-DAY CEASEFIRE takes effect 21:00 GMT. 2,196 killed since Mar 2. 1M+ displaced. Celebrations in Beirut. Families beginning to return. Hezbollah: "caution and vigilance." But IDF stays with "extensive" security zone to Syrian border. Early violations reported by Lebanese army. Iran 10-point plan partly achieved.</p>
+<p style="margin-top:6px"><strong>5. Israel:</strong> Netanyahu agreed to 10-day Lebanon ceasefire but fight "not over." IDF maintaining "extensive" security zone. Early violations. Trump says Israel "PROHIBITED" from bombing Lebanon. If US-Iran deal follows, Israel loses pretext for Lebanon ops entirely. IDF resisting withdrawal pressure. Strategic anxiety despite ceasefire.</p>
+<p style="margin-top:6px"><strong>6. Nuclear:</strong> Iran Hormuz opening = goodwill gesture that doesn't concede nuclear. 10-point plan still demands nuclear guarantees. Extension buys time for technical enrichment talks. Dismantling scope key disagreement. Iran demonstrated operational control (Hormuz) — strengthens nuclear bargaining. Vance Round 2 expected within days.</p>
+<p style="margin-top:6px"><strong>7. Global:</strong> OIL -12% — WTI ~$83, Brent ~$89. S&P 500 + Nasdaq ALL-TIME HIGHS. Paris Summit: 49 countries plan post-war Hormuz architecture. IMF may revise upward. IEA: supply shock easing. Energy rationing cancelled in Europe. Global economy pivoting from crisis to recovery mode. Biggest market relief since D40.</p>
+<p style="margin-top:6px"><strong>8. Diplomacy:</strong> MULTI-TRACK DE-ESCALATION — Lebanon ceasefire (Track 1). Hormuz reopening (Track 2). US-Iran extension in principle (Track 3). Paris 49-country summit (Track 4). Round 2 imminent. Trump: "should go very quickly." Game structure shifting from Chicken to Stag Hunt. Most diplomatic activity in single day since war began.</p>
+</div>
+</div>
+</div>
+
+<!-- ============ EQUILIBRIA ============ -->
+<div class="panel" id="equilibria">
+<div class="section-title">Possible Stable Outcomes</div>
+
+<!-- TREND CHART -->
+<div class="trend-chart-wrap">
+<h3>Probability Trends — Day 1 to Day 49</h3>
+<div class="chart-container">
+<canvas id="trendChart"></canvas>
+</div>
+<div class="chart-legend">
+<div class="chart-legend-item" onclick="toggleLine(0)"><span class="swatch" style="background:#58a6ff"></span> Negotiated Regime Transition</div>
+<div class="chart-legend-item" onclick="toggleLine(1)"><span class="swatch" style="background:#d29922"></span> Prolonged Attrition War</div>
+<div class="chart-legend-item" onclick="toggleLine(2)"><span class="swatch" style="background:#3fb950"></span> Iranian Capitulation / Collapse</div>
+<div class="chart-legend-item" onclick="toggleLine(3)"><span class="swatch" style="background:#f85149"></span> Catastrophic Escalation</div>
+</div>
+</div>
+
+<!-- OUTCOME CARDS -->
+<div class="eq-grid">
+
+<div class="eq-card">
+<div class="prob">28%<span class="change up">↑ 6%</span></div>
+<h4>Negotiated Regime Transition</h4>
+<p>Iran's leadership agrees to fundamental political reforms and denuclearization in exchange for ceasefire and sanctions relief. Requires credible guarantees and viable internal reformist movement.</p>
+<p style="margin-top:8px;color:#c9d1d9;font-size:12px"><strong>Day 49:</strong> BREAKTHROUGH DAY — Iran reopens Hormuz, Lebanon ceasefire takes effect, ceasefire extension in principle, Trump "should go very quickly." Oil -12% = markets pricing in deal. Surges +6 to 28% — highest since D40 (35%). Paris Summit (49 countries) creates parallel framework. Extension transforms game from binary to iterative. Round 2 imminent. Largest single-day probability shift since D40 ceasefire itself.</p>
+<div class="bar-bg"><div class="bar-fill" style="width:28%;background:#58a6ff"></div></div>
+</div>
+
+<div class="eq-card">
+<div class="prob">23%<span class="change down">↓ 5%</span></div>
+<h4>Prolonged Attrition War</h4>
+<p>No decisive outcome; conflict degrades into sustained multi-front war of attrition. Iran absorbs strikes while maintaining asymmetric pressure through proxies and Strait disruption.</p>
+<p style="margin-top:8px;color:#c9d1d9;font-size:12px"><strong>Day 49:</strong> Attrition collapsing as de-escalation accelerates. Hormuz reopened = frozen stalemate breaking. Lebanon ceasefire = second front de-activated. Extension in principle = more negotiation time. Oil -12% = economic pressure dissipating. Drops -5 to 23%. Frozen conflict scenario requires BOTH sides entrenched — both are now moving toward exit. Lowest since D42.</p>
+<div class="bar-bg"><div class="bar-fill" style="width:23%;background:#d29922"></div></div>
+</div>
+
+<div class="eq-card">
+<div class="prob">14%<span class="change down">↓ 1%</span></div>
+<h4>Iranian Capitulation / Collapse</h4>
+<p>Military destruction + internal rebellion leads to regime collapse or unconditional surrender. Requires severing of leadership from military apparatus and popular uprising.</p>
+<p style="margin-top:8px;color:#c9d1d9;font-size:12px"><strong>Day 49:</strong> Iran REOPENING Hormuz = negotiating from operational strength, not collapsing. Araghchi: "completely open" + coordinated routes = asserting sovereign control. 10-point plan still on table. IRGC intact. Drops -1 to 14%. Iran choosing strategic concessions (Hormuz + Lebanon) to strengthen bargaining position, not surrendering.</p>
+<div class="bar-bg"><div class="bar-fill" style="width:14%;background:#3fb950"></div></div>
+</div>
+
+<div class="eq-card">
+<div class="prob">35%<span class="change flat">→ 0%</span></div>
+<h4>Catastrophic Escalation</h4>
+<p>Conflict spirals into great-power confrontation, WMD use, or uncontrollable regional conflagration involving NATO Article 5, Russian direct intervention, or nuclear detonation.</p>
+<p style="margin-top:8px;color:#c9d1d9;font-size:12px"><strong>Day 49:</strong> De-escalation across multiple fronts SHOULD reduce catastrophic risk — but US blockade on Iran stays, Paris Summit excludes US (parallel architecture), early Lebanon ceasefire violations, Netanyahu "fight not over." Structural risks persist even amid euphoria. Holds at 35%. Markets may be pricing in peace prematurely. 5 days to April 22 (extension TBD).</p>
+<div class="bar-bg"><div class="bar-fill" style="width:35%;background:#f85149"></div></div>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:20px">
+<h3><span class="dot" style="background:#a371f7"></span>Methodology Note</h3>
+<p style="font-size:13px;color:#8b949e">Probabilities are Bayesian estimates updated daily from baseline priors (Day 1: 30/28/25/17%). Key inflection points: D10 (Negotiated 12%); D20 (Catastrophic 40%); D33 (tie 32-32%); D39 (Catastrophic 40% ATH); D40 (CEASEFIRE); D43 (Talks + warships); D44 (TALKS COLLAPSE + NAVAL BLOCKADE); D45-46 (BLOCKADE ENFORCEMENT); D47 (BLOCKADE FULL + ROUND 2 SIGNAL); D48 (MEDIATION PUSH — Munir in Tehran); D49 (TRIPLE DE-ESCALATION — Iran reopens Hormuz, Lebanon 10-day ceasefire, oil -12%, Paris Summit 49 countries, extension in principle — Negotiated +6 to 28%, Attrition -5 to 23%, Collapse -1 to 14%, Catastrophic 0 to 35%). Nineteen phases ending with (17) COERCIVE BARGAINING D47; (18) MEDIATION PUSH D48; (19) TRIPLE DE-ESCALATION / STAG HUNT EMERGENCE D49+. Sources: CNN, Al Jazeera, NPR, CNBC, Axios, Bloomberg, PBS, ABC, NBC, Euronews, Time, Stars and Stripes, Gulf News, Xinhua, Fortune, CBS, Reuters, Washington Times.</p>
+</div>
+
+</div>
+
+</div><!-- /content -->
+
+<div style="text-align:center;padding:20px;font-size:11px;color:#484f58;border-top:1px solid #21262d;margin-top:20px">
+Operation Epic Fury Game Theory Dashboard · Day 49 · April 17, 2026 · Auto-generated from verified open-source intelligence
+</div>
+
+<script>
+// Tab switching
+let chartInited = false;
+function switchTab(id){
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+const map={overview:0,intel:1,players:2,payoff:3,escalation:4,sitmap:5,equilibria:6};
+document.querySelectorAll('.tab')[map[id]].classList.add('active');
+// Init chart when Equilibria tab is first shown
+if(id === 'equilibria' && !chartInited){
+  chartInited = true;
+  setTimeout(initChart, 50);
+}
+}
+
+// Matrix switching
+function showMatrix(id){
+document.querySelectorAll('.matrix-container').forEach(m=>m.style.display='none');
+document.getElementById(id).style.display='block';
+}
+
+// Escalation rungs
+function toggleRung(el){
+el.classList.toggle('open');
+}
+
+// ===== TREND CHART =====
+const trendData = {
+labels: ['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13','D14','D15','D16','D17','D18','D19','D20','D21','D22','D23','D24','D25','D26','D27','D28','D29','D30','D31','D32','D33','D34','D35','D36','D37','D38','D39','D40','D41','D42','D43','D44','D45','D46','D47','D48','D49'],
+series: [
+  {name:'Negotiated Transition', color:'#58a6ff', data:[30,28,25,23,22,20,19,20,17,12,15,14,13,15,16,18,20,22,20,15,17,19,16,22,24,26,28,29,29,30,31,30,32,30,28,25,27,23,20,35,22,25,28,15,12,14,18,22,28], visible:true},
+  {name:'Prolonged Attrition',   color:'#d29922', data:[28,26,27,30,31,33,34,34,37,40,36,35,33,30,28,27,26,24,23,20,21,22,20,22,21,20,19,18,17,16,15,14,13,13,13,15,14,13,12,18,25,27,26,28,30,32,30,28,23], visible:true},
+  {name:'Iranian Collapse',      color:'#3fb950', data:[25,28,28,27,26,26,25,25,23,22,24,23,23,22,22,22,22,23,24,25,25,24,25,23,22,22,22,22,22,22,22,23,23,23,24,23,24,25,28,25,25,22,20,22,20,17,16,15,14], visible:true},
+  {name:'Catastrophic Escalation',color:'#f85149', data:[17,18,20,20,21,21,22,21,23,26,25,28,31,33,34,33,32,31,33,40,37,35,39,33,33,32,31,31,32,32,32,33,32,34,35,37,35,39,40,22,28,26,26,35,38,37,36,35,35], visible:true}
+]
+};
+
+let chartCanvas, chartCtx;
+const padding = {top:30, right:20, bottom:50, left:50};
+
+function initChart(){
+chartCanvas = document.getElementById('trendChart');
+if(!chartCanvas) return;
+chartCtx = chartCanvas.getContext('2d');
+resizeChart();
+window.addEventListener('resize', ()=>{resizeChart(); drawChart();});
+drawChart();
+// Tooltip
+chartCanvas.addEventListener('mousemove', handleHover);
+chartCanvas.addEventListener('mouseleave', ()=>{drawChart();});
+}
+
+function resizeChart(){
+const container = chartCanvas.parentElement;
+const dpr = window.devicePixelRatio || 1;
+chartCanvas.width = container.clientWidth * dpr;
+chartCanvas.height = container.clientHeight * dpr;
+chartCanvas.style.width = container.clientWidth + 'px';
+chartCanvas.style.height = container.clientHeight + 'px';
+chartCtx.scale(dpr, dpr);
+}
+
+function drawChart(highlightIdx){
+const w = chartCanvas.clientWidth;
+const h = chartCanvas.clientHeight;
+const ctx = chartCtx;
+ctx.clearRect(0,0,w,h);
+
+const plotW = w - padding.left - padding.right;
+const plotH = h - padding.top - padding.bottom;
+const n = trendData.labels.length;
+const stepX = plotW / (n - 1);
+
+// Grid lines
+ctx.strokeStyle = '#21262d';
+ctx.lineWidth = 1;
+for(let i = 0; i <= 4; i++){
+  const y = padding.top + (plotH / 4) * i;
+  ctx.beginPath();
+  ctx.moveTo(padding.left, y);
+  ctx.lineTo(w - padding.right, y);
+  ctx.stroke();
+  // Y labels
+  const val = 40 - i * 10;
+  ctx.fillStyle = '#484f58';
+  ctx.font = '11px -apple-system, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(val + '%', padding.left - 8, y + 4);
+}
+
+// X labels
+ctx.fillStyle = '#8b949e';
+ctx.font = '11px -apple-system, sans-serif';
+ctx.textAlign = 'center';
+for(let i = 0; i < n; i++){
+  const x = padding.left + stepX * i;
+  const lines = trendData.labels[i].split('\n');
+  ctx.fillText(lines[0], x, h - padding.bottom + 16);
+  if(lines[1]){
+    ctx.fillStyle = '#484f58';
+    ctx.fillText(lines[1], x, h - padding.bottom + 30);
+    ctx.fillStyle = '#8b949e';
+  }
+}
+
+// Highlight column
+if(highlightIdx !== undefined){
+  const x = padding.left + stepX * highlightIdx;
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  ctx.fillRect(x - stepX/2, padding.top, stepX, plotH);
+}
+
+// Draw lines
+trendData.series.forEach((s, si) => {
+  if(!s.visible) return;
+  ctx.strokeStyle = s.color;
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  s.data.forEach((val, i) => {
+    const x = padding.left + stepX * i;
+    const y = padding.top + plotH - (val / 40) * plotH;
+    if(i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Area fill
+  ctx.fillStyle = s.color.replace(')', ',0.06)').replace('rgb','rgba').replace('#','');
+  // Use hex to rgba
+  const r = parseInt(s.color.slice(1,3),16);
+  const g = parseInt(s.color.slice(3,5),16);
+  const b = parseInt(s.color.slice(5,7),16);
+  ctx.fillStyle = `rgba(${r},${g},${b},0.05)`;
+  ctx.beginPath();
+  s.data.forEach((val, i) => {
+    const x = padding.left + stepX * i;
+    const y = padding.top + plotH - (val / 40) * plotH;
+    if(i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.lineTo(padding.left + stepX * (n-1), padding.top + plotH);
+  ctx.lineTo(padding.left, padding.top + plotH);
+  ctx.closePath();
+  ctx.fill();
+
+  // Dots
+  s.data.forEach((val, i) => {
+    const x = padding.left + stepX * i;
+    const y = padding.top + plotH - (val / 40) * plotH;
+    ctx.fillStyle = s.color;
+    ctx.beginPath();
+    ctx.arc(x, y, (highlightIdx === i) ? 5 : 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+});
+
+// Tooltip
+if(highlightIdx !== undefined){
+  const x = padding.left + stepX * highlightIdx;
+  // Vertical line
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  ctx.moveTo(x, padding.top);
+  ctx.lineTo(x, padding.top + plotH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Tooltip box
+  const tooltipW = 200;
+  const tooltipH = 90;
+  let tx = x + 12;
+  if(tx + tooltipW > w - 10) tx = x - tooltipW - 12;
+  let ty = padding.top + 10;
+
+  ctx.fillStyle = 'rgba(22,27,34,0.95)';
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1;
+  roundRect(ctx, tx, ty, tooltipW, tooltipH, 6);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.font = 'bold 12px -apple-system, sans-serif';
+  ctx.fillStyle = '#f0f6fc';
+  ctx.textAlign = 'left';
+  ctx.fillText(trendData.labels[highlightIdx].replace('\n',' — '), tx + 10, ty + 18);
+
+  trendData.series.forEach((s, si) => {
+    if(!s.visible) return;
+    ctx.fillStyle = s.color;
+    ctx.beginPath();
+    ctx.arc(tx + 16, ty + 32 + si * 15, 4, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#c9d1d9';
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.fillText(s.data[highlightIdx] + '%', tx + 26, ty + 36 + si * 15);
+    // Change arrow
+    if(highlightIdx > 0){
+      const diff = s.data[highlightIdx] - s.data[highlightIdx-1];
+      if(diff > 0){ctx.fillStyle='#3fb950'; ctx.fillText('↑'+diff, tx + 50, ty + 36 + si * 15);}
+      else if(diff < 0){ctx.fillStyle='#f85149'; ctx.fillText('↓'+Math.abs(diff), tx + 50, ty + 36 + si * 15);}
+      else{ctx.fillStyle='#8b949e'; ctx.fillText('→', tx + 50, ty + 36 + si * 15);}
+    }
+  });
+}
+}
+
+function roundRect(ctx, x, y, w, h, r){
+ctx.beginPath();
+ctx.moveTo(x+r,y);
+ctx.lineTo(x+w-r,y);
+ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+ctx.lineTo(x+w,y+h-r);
+ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+ctx.lineTo(x+r,y+h);
+ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+ctx.lineTo(x,y+r);
+ctx.quadraticCurveTo(x,y,x+r,y);
+ctx.closePath();
+}
+
+function handleHover(e){
+const rect = chartCanvas.getBoundingClientRect();
+const mx = e.clientX - rect.left;
+const w = chartCanvas.clientWidth;
+const plotW = w - padding.left - padding.right;
+const n = trendData.labels.length;
+const stepX = plotW / (n - 1);
+const relX = mx - padding.left;
+const idx = Math.round(relX / stepX);
+if(idx >= 0 && idx < n){
+  drawChart(idx);
+} else {
+  drawChart();
+}
+}
+
+function toggleLine(idx){
+trendData.series[idx].visible = !trendData.series[idx].visible;
+const items = document.querySelectorAll('.chart-legend-item');
+items[idx].style.opacity = trendData.series[idx].visible ? 1 : 0.3;
+drawChart();
+}
+
+// Note: chart init is deferred to when the Equilibria tab is first opened (see switchTab)
+</script>
+</body>
+</html>
