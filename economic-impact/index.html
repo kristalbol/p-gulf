@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iran War — Economic Impact Dashboard | Day 49</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;line-height:1.6;overflow-x:hidden}
+a{color:#58a6ff;text-decoration:none}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#161b22}
+::-webkit-scrollbar-thumb{background:#30363d;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#484f58}
+
+/* Ticker */
+.ticker-wrap{background:#161b22;border-bottom:1px solid #d29922;overflow:hidden;height:36px;position:sticky;top:0;z-index:100}
+.ticker{display:flex;animation:ticker 60s linear infinite;white-space:nowrap;height:36px;align-items:center}
+.ticker span{padding:0 40px;font-size:13px;color:#f0f6fc;font-weight:500}
+.ticker .up{color:#3fb950}
+.ticker .down{color:#f85149}
+.ticker .warn{color:#d29922}
+.ticker .info{color:#58a6ff}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* Header */
+.header{background:linear-gradient(135deg,#161b22 0%,#0d1117 100%);padding:20px 30px;border-bottom:1px solid #30363d;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.header h1{font-size:22px;color:#f0f6fc;font-weight:700}
+.header h1 .accent{color:#d29922;font-weight:800}
+.header .meta{font-size:13px;color:#8b949e}
+.header .status-badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase}
+.badge.red{background:rgba(248,81,73,.15);color:#f85149;border:1px solid rgba(248,81,73,.4)}
+.badge.yellow{background:rgba(210,153,34,.15);color:#d29922;border:1px solid rgba(210,153,34,.4)}
+.badge.blue{background:rgba(88,166,255,.15);color:#58a6ff;border:1px solid rgba(88,166,255,.4)}
+.badge.green{background:rgba(63,185,80,.15);color:#3fb950;border:1px solid rgba(63,185,80,.4)}
+
+/* Tabs */
+.tabs{display:flex;background:#161b22;border-bottom:1px solid #30363d;padding:0 20px;overflow-x:auto;gap:0}
+.tab{padding:12px 20px;cursor:pointer;font-size:13px;font-weight:600;color:#8b949e;border-bottom:2px solid transparent;transition:.2s;white-space:nowrap}
+.tab:hover{color:#c9d1d9}
+.tab.active{color:#f0f6fc;border-bottom-color:#d29922}
+
+/* Content */
+.content{max-width:1400px;margin:0 auto;padding:20px}
+.panel{display:none}
+.panel.active{display:block}
+
+/* Cards */
+.card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin-bottom:16px}
+.card h3{color:#f0f6fc;font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* Metrics Grid */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.metric{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;text-align:center;position:relative;overflow:hidden}
+.metric .value{font-size:28px;font-weight:800;color:#f0f6fc}
+.metric .label{font-size:12px;color:#8b949e;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.metric .change{font-size:13px;margin-top:4px;font-weight:600}
+.metric.red .value{color:#f85149}
+.metric.red .change{color:#f85149}
+.metric.yellow .value{color:#d29922}
+.metric.yellow .change{color:#d29922}
+.metric.green .value{color:#3fb950}
+.metric.green .change{color:#3fb950}
+.metric.blue .value{color:#58a6ff}
+.metric.blue .change{color:#58a6ff}
+
+/* Section Title */
+.section-title{font-size:18px;font-weight:700;color:#f0f6fc;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #21262d}
+
+/* Chart container */
+.chart-wrap{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin-bottom:16px}
+.chart-wrap h3{color:#f0f6fc;font-size:16px;margin-bottom:16px}
+.chart-box{position:relative;width:100%;height:340px}
+.chart-box canvas{width:100%!important;height:100%!important}
+
+/* Data table */
+.data-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px}
+.data-table th,.data-table td{padding:10px 14px;border:1px solid #30363d;text-align:left}
+.data-table th{background:#21262d;color:#f0f6fc;font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:.5px}
+.data-table td{background:#0d1117;color:#c9d1d9}
+.data-table td.up{color:#3fb950;font-weight:600}
+.data-table td.down{color:#f85149;font-weight:600}
+.data-table td.neutral{color:#d29922;font-weight:600}
+.data-table tr:hover td{background:#161b22}
+
+/* Indicator row */
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:16px}
+.ind-card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px}
+.ind-card h4{color:#f0f6fc;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.ind-card .ind-value{font-size:32px;font-weight:800;margin-bottom:4px}
+.ind-card .ind-change{font-size:14px;font-weight:600;margin-bottom:8px}
+.ind-card .ind-detail{font-size:12px;color:#8b949e;line-height:1.5}
+.ind-card .ind-spark{height:40px;margin:8px 0}
+
+/* Risk meter */
+.risk-meter{margin:16px 0}
+.risk-meter .meter-bar{height:24px;background:#21262d;border-radius:12px;overflow:hidden;position:relative}
+.risk-meter .meter-fill{height:100%;border-radius:12px;transition:width .5s}
+.risk-meter .meter-label{display:flex;justify-content:space-between;font-size:11px;color:#8b949e;margin-top:4px}
+.risk-meter .meter-marker{position:absolute;top:-2px;width:4px;height:28px;background:#f0f6fc;border-radius:2px;transform:translateX(-50%)}
+
+/* Alert */
+.alert{padding:14px 16px;border-radius:6px;margin-bottom:8px;border-left:4px solid;font-size:13px}
+.alert.critical{background:rgba(248,81,73,.08);border-color:#f85149;color:#ffa198}
+.alert.warning{background:rgba(210,153,34,.08);border-color:#d29922;color:#e3b341}
+.alert.info{background:rgba(88,166,255,.08);border-color:#58a6ff;color:#79c0ff}
+.alert.positive{background:rgba(63,185,80,.08);border-color:#3fb950;color:#56d364}
+
+/* Eq grid */
+.eq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.eq-card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;position:relative;overflow:hidden}
+.eq-card .prob{font-size:36px;font-weight:800;color:#f0f6fc}
+.eq-card .change-badge{font-size:14px;margin-left:6px}
+.eq-card .change-badge.up{color:#3fb950}
+.eq-card .change-badge.down{color:#f85149}
+.eq-card .change-badge.flat{color:#8b949e}
+.eq-card h4{margin:8px 0;font-size:15px;color:#f0f6fc}
+.eq-card p{font-size:13px;color:#8b949e}
+.eq-card .bar-bg{height:6px;background:#21262d;border-radius:3px;margin-top:12px;overflow:hidden}
+.eq-card .bar-fill{height:100%;border-radius:3px}
+
+/* Footer */
+.footer{text-align:center;padding:20px;font-size:12px;color:#484f58;border-top:1px solid #21262d;margin-top:20px}
+
+/* API source tag */
+.api-tag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;background:#21262d;color:#8b949e;margin-left:8px}
+
+/* Responsive */
+@media(max-width:768px){
+.metrics{grid-template-columns:repeat(2,1fr)}
+.ind-grid{grid-template-columns:1fr}
+.eq-grid{grid-template-columns:1fr}
+.header{flex-direction:column;align-items:flex-start}
+.chart-box{height:260px}
+}
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+<div class="ticker" id="ticker">
+<span class="up">WTI $93.74 ▼$0.95 (-1.0%) · Brent $88.73 ▼10.7% — HORMUZ REOPENED</span>
+<span class="up">S&P 500 7,128 ▲+1.23% ALL-TIME HIGH · Nasdaq 24,103 ▲+0.95% ATH · Dow +1,005pts (+2.1%)</span>
+<span class="down">Consumer Sentiment 47.6 — 74-YEAR HISTORIC LOW · Inflation Expectations 4.8% ▲ SURGING</span>
+<span class="info">VIX 17.28 ▼3.7% · DXY 97.70 ▼0.5% · Gold $4,867 ▲1.7% · 10Y Yield 4.31%</span>
+<span class="warn">Fertilizer: Urea +49% in 6 wks · Ammonia +32% YoY · FAO Food Index 128.5 ▲2.4%</span>
+<span class="up">Defense: LMT $598 · RTX $196 · NOC $673 · ITA ETF elevated · War premium pricing in</span>
+<span class="info">Baltic Dry 2,567 ▲44pts · Asia-US Container $2,127-$3,069/FEU · War risk insurance elevated</span>
+<!-- duplicate for seamless loop -->
+<span class="up">WTI $93.74 ▼$0.95 (-1.0%) · Brent $88.73 ▼10.7% — HORMUZ REOPENED</span>
+<span class="up">S&P 500 7,128 ▲+1.23% ALL-TIME HIGH · Nasdaq 24,103 ▲+0.95% ATH · Dow +1,005pts (+2.1%)</span>
+<span class="down">Consumer Sentiment 47.6 — 74-YEAR HISTORIC LOW · Inflation Expectations 4.8% ▲ SURGING</span>
+<span class="info">VIX 17.28 ▼3.7% · DXY 97.70 ▼0.5% · Gold $4,867 ▲1.7% · 10Y Yield 4.31%</span>
+<span class="warn">Fertilizer: Urea +49% in 6 wks · Ammonia +32% YoY · FAO Food Index 128.5 ▲2.4%</span>
+<span class="up">Defense: LMT $598 · RTX $196 · NOC $673 · ITA ETF elevated · War premium pricing in</span>
+<span class="info">Baltic Dry 2,567 ▲44pts · Asia-US Container $2,127-$3,069/FEU · War risk insurance elevated</span>
+</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+<div>
+<h1>Operation Epic Fury — Economic Impact Dashboard <span class="accent">| DAY 49</span></h1>
+<div class="meta">April 17, 2026 · Day 49 · Oil -12% on Hormuz Reopening · Markets at ATH · Consumer Sentiment Historic Low · Fertilizer Crisis · Ceasefire Extension in Principle</div>
+</div>
+<div class="status-badges">
+<span class="badge green">OIL PLUNGING</span>
+<span class="badge green">MARKETS ATH</span>
+<span class="badge red">SENTIMENT 74YR LOW</span>
+</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+<div class="tab active" onclick="switchTab('overview')">Overview</div>
+<div class="tab" onclick="switchTab('energy')">Energy</div>
+<div class="tab" onclick="switchTab('markets')">Markets</div>
+<div class="tab" onclick="switchTab('trade')">Trade & Shipping</div>
+<div class="tab" onclick="switchTab('macro')">Macro</div>
+<div class="tab" onclick="switchTab('regional')">Regional</div>
+<div class="tab" onclick="switchTab('risk')">Risk Index</div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- ============ OVERVIEW ============ -->
+<div class="panel active" id="overview">
+
+<div class="metrics">
+<div class="metric green"><div class="value">$93.74</div><div class="change">▼ 1.0% today</div><div class="label">WTI Crude Oil</div></div>
+<div class="metric green"><div class="value">7,128</div><div class="change">▲ 1.23% ATH</div><div class="label">S&P 500</div></div>
+<div class="metric green"><div class="value">17.28</div><div class="change">▼ 3.7%</div><div class="label">VIX Fear Index</div></div>
+<div class="metric red"><div class="value">47.6</div><div class="change">▼ 11% · 74yr Low</div><div class="label">Consumer Sentiment</div></div>
+<div class="metric yellow"><div class="value">4.8%</div><div class="change">▲ from 3.8%</div><div class="label">Inflation Expectations</div></div>
+<div class="metric blue"><div class="value">97.70</div><div class="change">▼ 0.5%</div><div class="label">Dollar Index (DXY)</div></div>
+<div class="metric yellow"><div class="value">2,567</div><div class="change">▲ 44 pts</div><div class="label">Baltic Dry Index</div></div>
+<div class="metric green"><div class="value">$4,867</div><div class="change">▲ 1.7%</div><div class="label">Gold $/oz</div></div>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#d29922"></span>Economic Snapshot — Day 49</h3>
+<p>Day 49 delivers the war's most dramatic economic reversal. Iran's reopening of the Strait of Hormuz sent oil prices plunging 10-12% — the biggest single-day drop since the conflict began — with WTI falling to $93.74 and Brent to $88.73. Equities surged to all-time highs: S&P 500 at 7,128 (+1.23%), Nasdaq at 24,103, Dow up 1,005 points. The VIX dropped below 18 for the first time in weeks. Yet beneath the market euphoria lies a deeply stressed real economy: University of Michigan consumer sentiment hit 47.6 — the lowest reading in the survey's 74-year history — while one-year inflation expectations surged to 4.8%, up a full percentage point from March.</p>
+<p style="margin-top:10px">The divergence between financial markets and consumer sentiment is the defining economic story of Day 49. Wall Street prices in peace; Main Street still feels the damage from 7 weeks of disrupted supply chains, elevated energy costs, and food price inflation. Fertilizer prices remain 23-49% above pre-war levels depending on the product, with urea spiking $230/ton in 6 weeks — a crisis that will flow through to food prices for months regardless of ceasefire outcomes. The FAO Food Price Index rose 2.4% to 128.5 in March. Defense stocks have pulled back slightly (LMT -1.6% today to $598) as peace optimism erodes war premiums. The Dollar Index weakened to 97.70 as safe-haven demand eases. Gold climbed to $4,867 — a mixed signal between lingering uncertainty and inflation hedging. The ISM Manufacturing PMI at 52.7 suggests factory activity remains expansionary, but the consumer confidence collapse signals demand destruction ahead. This is an economy where the ceasefire has healed the price of oil but not yet the price of groceries, confidence, or supply chain resilience.</p>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#58a6ff"></span>Key Economic Divergences</h3>
+<div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:16px;font-size:13px;color:#8b949e">
+<p><strong style="color:#c9d1d9">Markets vs. Main Street:</strong> S&P 500 at all-time highs while consumer sentiment is at 74-year lows. This disconnect reflects that financial markets are forward-looking (pricing in peace), while consumer surveys capture accumulated pain (7 weeks of inflation, uncertainty, supply disruption).</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Oil vs. Food:</strong> Oil has dropped ~37% from war-peak ~$150 to $93, but fertilizer prices remain 23-49% elevated. The agricultural supply chain has multi-month lag times — even full Hormuz normalization won't reverse food inflation for 3-6 months.</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">VIX vs. Inflation Expectations:</strong> VIX at 17.28 signals calm; inflation expectations at 4.8% signal alarm. Markets see volatility easing but consumers see prices rising — both can be correct simultaneously.</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Defense Stocks vs. Broad Market:</strong> LMT, RTX, NOC pulling back as peace optimism rises. Defense sector outperformed by ~30% since Feb 28 but is now giving back gains. War premium unwinding = peace dividend redistributing to growth sectors.</p>
+</div>
+</div>
+</div>
+
+<!-- ============ ENERGY ============ -->
+<div class="panel" id="energy">
+<div class="section-title">Energy Markets — Day 49</div>
+
+<div class="metrics">
+<div class="metric green"><div class="value">$93.74</div><div class="change">▼ 1.0% · Peak: ~$150</div><div class="label">WTI Crude Oil</div></div>
+<div class="metric green"><div class="value">$88.73</div><div class="change">▼ 10.7% today</div><div class="label">Brent Crude Oil</div></div>
+<div class="metric blue"><div class="value">$2.70</div><div class="change">▲ 2.1% · ▼12% mo</div><div class="label">Natural Gas (Henry Hub)</div></div>
+<div class="metric yellow"><div class="value">$4.14</div><div class="change">Elevated · declining</div><div class="label">Jet Fuel ($/gal)</div></div>
+</div>
+
+<div class="chart-wrap">
+<h3>Oil Price Trajectory — Day 1 to Day 49</h3>
+<div class="chart-box"><canvas id="oilChart"></canvas></div>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#f85149"></span>Energy Impact Analysis</h3>
+<table class="data-table">
+<thead><tr><th>Commodity</th><th>Current</th><th>Pre-War (Feb 27)</th><th>War Peak</th><th>Change from Peak</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>WTI Crude ($/bbl)</td><td>$93.74</td><td>~$80</td><td>~$150</td><td class="up">▼ 37.5%</td><td class="up">Normalizing</td></tr>
+<tr><td>Brent Crude ($/bbl)</td><td>$88.73</td><td>~$84</td><td>~$155</td><td class="up">▼ 42.8%</td><td class="up">Normalizing</td></tr>
+<tr><td>Natural Gas HH ($/MMBtu)</td><td>$2.70</td><td>$2.50</td><td>$3.80</td><td class="up">▼ 28.9%</td><td class="up">Near normal</td></tr>
+<tr><td>European TTF Gas (€/MWh)</td><td>~€38</td><td>~€28</td><td>~€65</td><td class="up">▼ 41.5%</td><td class="neutral">Elevated</td></tr>
+<tr><td>Asian JKM LNG ($/MMBtu)</td><td>$10.73</td><td>~$9.00</td><td>~$18</td><td class="up">▼ 40.4%</td><td class="neutral">Elevated</td></tr>
+<tr><td>Jet Fuel Gulf ($/gal)</td><td>$4.14</td><td>~$2.40</td><td>~$5.50</td><td class="up">▼ 24.7%</td><td class="down">Still high</td></tr>
+<tr><td>Heating Oil ($/gal)</td><td>~$2.80</td><td>~$2.30</td><td>~$4.00</td><td class="up">▼ 30.0%</td><td class="neutral">Elevated</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#d29922"></span>Hormuz Strait — The Oil Chokepoint</h3>
+<div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:16px;font-size:13px;color:#8b949e">
+<p><strong style="color:#c9d1d9">Normal flow:</strong> ~21 million barrels/day (~20% of global oil supply), plus ~25% of global LNG</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Day 49 status:</strong> Iran declared Hormuz "completely open" for commercial vessels. Ships must use Iran-coordinated routes via Iran Ports & Maritime Organisation. US maintains blockade targeting Iran-bound/Iran-origin ships only. Dual status: open for global commerce, blocked for Iranian trade.</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Oil price math:</strong> Peak disruption removed ~4-5M bbl/day from markets → $150 oil. Hormuz reopening restores bulk of transit → $88-94 oil. Full normalization (incl. Iran trade) would push toward $75-80. US blockade on Iran keeps ~2M bbl/day constrained.</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Consumer impact:</strong> US gasoline peaked ~$5.50/gal, now trending toward $4.00. Full normalization target: $3.50-3.80. Every $10/bbl oil = ~$0.25/gal gasoline. Airlines: fuel surcharges of $50-150/ticket remain in effect.</p>
+</div>
+</div>
+</div>
+
+<!-- ============ MARKETS ============ -->
+<div class="panel" id="markets">
+<div class="section-title">Financial Markets — Day 49</div>
+
+<div class="metrics">
+<div class="metric green"><div class="value">7,128</div><div class="change">▲ +86.83 (+1.23%)</div><div class="label">S&P 500 — ATH</div></div>
+<div class="metric green"><div class="value">24,103</div><div class="change">▲ +0.95%</div><div class="label">Nasdaq — ATH</div></div>
+<div class="metric green"><div class="value">+1,005</div><div class="change">▲ +2.1%</div><div class="label">Dow Jones Pts</div></div>
+<div class="metric green"><div class="value">17.28</div><div class="change">▼ 3.7% — Calm</div><div class="label">VIX Fear Index</div></div>
+</div>
+
+<div class="ind-grid">
+<div class="ind-card">
+<h4>🏛️ Treasury Yields</h4>
+<div class="ind-value" style="color:#58a6ff">4.31%</div>
+<div class="ind-change" style="color:#8b949e">10-Year Treasury</div>
+<div class="ind-detail">2-Year: 3.78% (▼0.01pp) · Spread: +53bp (normal, no recession signal) · Pre-war 10Y was ~4.25%. Yields slightly elevated on inflation expectations but curve is healthy. Fed holding rates steady amid conflicting signals — inflation up but growth uncertain.</div>
+</div>
+<div class="ind-card">
+<h4>📊 Credit Spreads</h4>
+<div class="ind-value" style="color:#d29922">2.95%</div>
+<div class="ind-change" style="color:#8b949e">High-Yield OAS (ICE BofA)</div>
+<div class="ind-detail">Investment Grade BBB: ~1.50% · Pre-war HY spread: ~2.60%. Current 2.95% = modestly elevated but tightening on ceasefire news. Peak during war: ~3.80%. Corporate bond market pricing in manageable risk. No credit crisis signal — yet.</div>
+</div>
+<div class="ind-card">
+<h4>🛡️ Defense Stocks</h4>
+<div class="ind-value" style="color:#f85149">$598</div>
+<div class="ind-change" style="color:#f85149">LMT ▼1.6% today</div>
+<div class="ind-detail">RTX $195.76 · NOC $673 · War premium unwinding as peace optimism rises. LMT +28% YTD but pulling back. ITA defense ETF elevated. Market rotating FROM defense TO growth/cyclicals on ceasefire.</div>
+</div>
+<div class="ind-card">
+<h4>💰 Safe Havens</h4>
+<div class="ind-value" style="color:#d29922">$4,867</div>
+<div class="ind-change" style="color:#3fb950">Gold ▲1.7%</div>
+<div class="ind-detail">Silver: $79.60-83.50 (▲1.5%) · Gold up despite peace = inflation hedge, not war hedge. Unusual: gold initially SOLD OFF 5.9% at war start (liquidity flush). Now driven by inflation expectations + central bank buying. Silver +143% YoY.</div>
+</div>
+</div>
+
+<div class="chart-wrap">
+<h3>Market Performance — Day 1 to Day 49 (Indexed: Feb 28 = 100)</h3>
+<div class="chart-box"><canvas id="marketChart"></canvas></div>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#58a6ff"></span>Market Regime Analysis</h3>
+<div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:16px;font-size:13px;color:#8b949e">
+<p><strong style="color:#c9d1d9">Current regime:</strong> RISK-ON with inflation caution. Markets pricing in successful ceasefire → deal within weeks. Equity volatility compressing (VIX 17.28), credit spreads tightening, defense rotating to cyclicals.</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Key risk:</strong> If ceasefire collapses or April 22 deadline passes without extension, expect VIX >35, S&P -5-8%, oil back above $120. The market has priced in peace — any disappointment creates asymmetric downside.</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Fed implications:</strong> Fed in impossible position — inflation expectations at 4.8% argue for hikes, but economic uncertainty argues for holding. Most likely: Fed holds through June, data-dependent. Bond market pricing in 1-2 cuts by year end (optimistic given inflation data).</p>
+</div>
+</div>
+</div>
+
+<!-- ============ TRADE & SHIPPING ============ -->
+<div class="panel" id="trade">
+<div class="section-title">Trade & Shipping — Day 49</div>
+
+<div class="metrics">
+<div class="metric yellow"><div class="value">2,567</div><div class="change">▲ 44 pts</div><div class="label">Baltic Dry Index</div></div>
+<div class="metric yellow"><div class="value">$2,127</div><div class="change">▲ 8% · Asia→US West</div><div class="label">Container Rate (FEU)</div></div>
+<div class="metric yellow"><div class="value">$3,069</div><div class="change">▼ 3% · Asia→US East</div><div class="label">Container Rate (FEU)</div></div>
+<div class="metric red"><div class="value">1.0%+</div><div class="change">From 0.2% pre-war</div><div class="label">War Risk Insurance</div></div>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#d29922"></span>Shipping & Trade Disruption Matrix</h3>
+<table class="data-table">
+<thead><tr><th>Indicator</th><th>Pre-War</th><th>War Peak</th><th>Current (D49)</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Baltic Dry Index</td><td>~1,800</td><td>~3,200</td><td>2,567</td><td class="neutral">Elevated</td></tr>
+<tr><td>Asia→US West Container (FEU)</td><td>~$1,600</td><td>~$3,500</td><td>$2,127</td><td class="neutral">Elevated</td></tr>
+<tr><td>Asia→US East Container (FEU)</td><td>~$2,500</td><td>~$4,800</td><td>$3,069</td><td class="neutral">Elevated</td></tr>
+<tr><td>Intra-Asia Container (40ft)</td><td>~$650</td><td>~$1,200</td><td>$839</td><td class="neutral">▲26% YoY</td></tr>
+<tr><td>War Risk Insurance (% hull)</td><td>0.2%</td><td>1.5%+</td><td>1.0%+</td><td class="down">Still high</td></tr>
+<tr><td>VLCC Supertanker Day Rate</td><td>~$35K</td><td>~$120K</td><td>~$70K</td><td class="neutral">Elevated</td></tr>
+<tr><td>Hormuz Daily Oil Transit (M bbl)</td><td>~21M</td><td>~5M</td><td>~18M (est)</td><td class="up">Reopening</td></tr>
+<tr><td>WTO Trade Growth Forecast 2026</td><td>4.6%</td><td>—</td><td>1.9%</td><td class="down">▼58% cut</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#f85149"></span>Trade Impact Assessment</h3>
+<div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:16px;font-size:13px;color:#8b949e">
+<p><strong style="color:#c9d1d9">Strait of Hormuz:</strong> Iran's reopening has restored most commercial transit, but US enforcement of the Iran blockade creates a two-tier system. Ships transiting must use Iran-coordinated routes. Insurance premiums remain at 5x pre-war levels — insurers lag ceasefire optimism by weeks. Full shipping cost normalization requires sustained peace (est. 4-8 weeks post-deal).</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">WTO downgrade:</strong> Global merchandise trade growth slashed from 4.6% to 1.9% for 2026. High-energy scenario (escalation): 1.4%. The war removed ~$800B in projected global trade. Recovery depends on ceasefire permanence and supply chain re-establishment.</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Red Sea compound effect:</strong> Houthi disruptions (since late 2023) + Hormuz crisis = double chokepoint pressure. Suez Canal traffic already down 60% from Houthi attacks. Ships rerouting around Africa add 10-14 days and $1M+ per voyage. Hormuz reopening helps, but Red Sea remains problematic.</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Consumer pass-through:</strong> Elevated shipping costs → 2-4% higher consumer goods prices within 60-90 days. Even with oil falling, the shipping/logistics surcharge embedded in product prices will take 3-6 months to unwind.</p>
+</div>
+</div>
+</div>
+
+<!-- ============ MACRO ============ -->
+<div class="panel" id="macro">
+<div class="section-title">Macroeconomic Indicators — Day 49</div>
+
+<div class="metrics">
+<div class="metric red"><div class="value">47.6</div><div class="change">▼ 11% from March · HISTORIC LOW</div><div class="label">U Michigan Consumer Sentiment</div></div>
+<div class="metric red"><div class="value">4.8%</div><div class="change">▲ from 3.8% (Mar)</div><div class="label">1-Year Inflation Expectations</div></div>
+<div class="metric green"><div class="value">52.7</div><div class="change">▲ 0.3pp · Expanding</div><div class="label">ISM Manufacturing PMI</div></div>
+<div class="metric yellow"><div class="value">91.8</div><div class="change">▲ 0.8 · Still weak</div><div class="label">Conf. Board Consumer Conf.</div></div>
+</div>
+
+<div class="chart-wrap">
+<h3>Consumer Sentiment vs. Inflation Expectations — Day 1 to Day 49</h3>
+<div class="chart-box"><canvas id="macroChart"></canvas></div>
+</div>
+
+<div class="ind-grid">
+<div class="ind-card">
+<h4>🇺🇸 GDP Growth Forecasts (2026)</h4>
+<div class="ind-value" style="color:#d29922">2.0%</div>
+<div class="ind-change" style="color:#f85149">▼ from 2.7% pre-war</div>
+<div class="ind-detail">IMF baseline: 2.0% (cut from 2.7%). Recession scenario if escalation: 0.5-1.0%. Goldman Sachs recession probability: ~35%. Dallas Fed nowcast trending lower. Key risk: consumer spending collapse (70% of GDP) if sentiment stays at historic lows.</div>
+</div>
+<div class="ind-card">
+<h4>🌍 Global GDP Forecast (2026)</h4>
+<div class="ind-value" style="color:#d29922">3.1%</div>
+<div class="ind-change" style="color:#f85149">▼ from 3.3% (Jan WEO)</div>
+<div class="ind-detail">IMF April 2026 WEO: Global growth 3.1%. MENA region: 1.4% (▼2.3pp — largest regional downgrade). Asia-Pacific energy importers hardest hit outside Middle East. 5 of 8 MENA oil exporters projected to contract. 2027 recovery: 3.2%.</div>
+</div>
+<div class="ind-card">
+<h4>📈 Labor Market</h4>
+<div class="ind-value" style="color:#3fb950">Resilient</div>
+<div class="ind-change" style="color:#8b949e">So far</div>
+<div class="ind-detail">Unemployment holding ~4.0%. Initial jobless claims not spiking. BUT: leading indicators (sentiment, hiring intentions) are deteriorating. Energy sector adding jobs; manufacturing mixed. Watch for lag effects — labor is a lagging indicator by 3-6 months.</div>
+</div>
+<div class="ind-card">
+<h4>🏭 Manufacturing</h4>
+<div class="ind-value" style="color:#3fb950">52.7</div>
+<div class="ind-change" style="color:#3fb950">Expanding (>50)</div>
+<div class="ind-detail">ISM Manufacturing PMI: 52.7 (Mar). S&P Global PMI: 52.3. 17th consecutive month of expansion. New orders strong. Supplier deliveries slowing (Hormuz/shipping). Prices paid sub-index elevated → input cost inflation. Factory floor OK; supply chains stressed.</div>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#f85149"></span>Food & Fertilizer Crisis</h3>
+<table class="data-table">
+<thead><tr><th>Indicator</th><th>Pre-War</th><th>Current</th><th>Change</th><th>Impact</th></tr></thead>
+<tbody>
+<tr><td>FAO Food Price Index</td><td>125.5</td><td>128.5</td><td class="down">▲ 2.4%</td><td>Global food inflation accelerating</td></tr>
+<tr><td>Urea ($/ton)</td><td>~$470</td><td>~$700</td><td class="down">▲ 49% in 6 weeks</td><td>Strait blocks ~50% of global urea exports</td></tr>
+<tr><td>Anhydrous Ammonia</td><td>baseline</td><td>+$245/ton</td><td class="down">▲ 32% YoY</td><td>US farm input costs surging</td></tr>
+<tr><td>UAN 28 Fertilizer</td><td>baseline</td><td>+31% YoY</td><td class="down">▲ 31%</td><td>Spring planting season cost shock</td></tr>
+<tr><td>Cereals (FAO)</td><td>baseline</td><td>▲ 4.3%</td><td class="down">Rising</td><td>Bread/grain prices rising globally</td></tr>
+</tbody>
+</table>
+<div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:16px;font-size:13px;color:#8b949e;margin-top:12px">
+<p><strong style="color:#f85149">Critical:</strong> The fertilizer crisis is the war's most underappreciated economic impact. The Strait of Hormuz handles ~50% of global urea exports. Even with today's reopening, the 7-week disruption has created a supply gap during the Northern Hemisphere spring planting season. Effects will compound into food prices through Q3-Q4 2026 regardless of peace outcome. This is a locked-in inflationary shock.</p>
+</div>
+</div>
+</div>
+
+<!-- ============ REGIONAL ============ -->
+<div class="panel" id="regional">
+<div class="section-title">Regional Economic Impact — Day 49</div>
+
+<div class="ind-grid">
+<div class="ind-card">
+<h4>🇸🇦🇦🇪🇶🇦 Gulf States (GCC)</h4>
+<div class="ind-value" style="color:#d29922">Recovering</div>
+<div class="ind-change" style="color:#3fb950">CDS Spreads ▼18-29% from peak</div>
+<div class="ind-detail">Sovereign CDS spreads easing: Qatar ▼29% from March peak, Saudi Arabia ▼22-29%, UAE ▼18%, Bahrain ▼22-29%. Hormuz reopening = shipping resuming on coordinated routes. Non-oil sectors recovering. GCC economies benefit from oil price stability even at $88-94 (above fiscal breakeven for most). Risk: US blockade on Iran still disrupts some trade lanes.</div>
+</div>
+<div class="ind-card">
+<h4>🇮🇷 Iran</h4>
+<div class="ind-value" style="color:#f85149">Severe</div>
+<div class="ind-change" style="color:#f85149">Rial >1.5M/USD · Food +72% YoY</div>
+<div class="ind-detail">Economy in crisis: rial collapsed past 1.5M/USD (lost 800% since 2020). Food prices up 72% YoY. US blockade stays on Iran-bound ships despite Hormuz reopening. Infrastructure damage extensive. IMF projects sharp contraction. Diaspora remittances disrupted. Medical supply shortages reported.</div>
+</div>
+<div class="ind-card">
+<h4>🇰🇷🇯🇵🇮🇳🇹🇼 Asia-Pacific Energy Importers</h4>
+<div class="ind-value" style="color:#d29922">Stressed</div>
+<div class="ind-change" style="color:#d29922">Hardest hit outside MENA</div>
+<div class="ind-detail">Japan, South Korea, Taiwan, India: 20-30% energy import dependence via Strait. Currencies weakened against USD. Asian JKM LNG at $10.73/MMBtu (elevated). Manufacturing costs up. Some relief from oil price drop today. India: 220K+ workers repatriated from Gulf. Supply chain restructuring underway.</div>
+</div>
+<div class="ind-card">
+<h4>🇪🇺 European Union</h4>
+<div class="ind-value" style="color:#3fb950">Relieved</div>
+<div class="ind-change" style="color:#3fb950">Brent $89 · Energy rationing cancelled</div>
+<div class="ind-detail">Massive relief on Hormuz reopening. Brent falling toward $89. TTF gas easing from €65 peak to ~€38. Energy rationing plans cancelled. Paris Summit: 49 countries building post-war Hormuz architecture. IEA supply shock fears receding. Von der Leyen: EU supports any framework. Industrial production recovering.</div>
+</div>
+<div class="ind-card">
+<h4>🌍 Emerging Markets (Broad)</h4>
+<div class="ind-value" style="color:#d29922">$62.45</div>
+<div class="ind-change" style="color:#8b949e">EEM ETF · 52wk: $41.61-$65.96</div>
+<div class="ind-detail">EM equities recovering from war-trough. EEM fell 8.41% in single week (early March). Now recovering on ceasefire. EM bond spreads tightening. Capital flight reversing. BUT: food inflation + fertilizer crisis will disproportionately hit low-income countries. Sub-Saharan Africa, South/Southeast Asia most vulnerable to food price shock.</div>
+</div>
+<div class="ind-card">
+<h4>🌐 MENA Region (IMF Forecast)</h4>
+<div class="ind-value" style="color:#f85149">1.4%</div>
+<div class="ind-change" style="color:#f85149">▼ 2.3pp from pre-war forecast</div>
+<div class="ind-detail">Largest regional GDP downgrade in IMF April 2026 WEO. 5 of 8 MENA oil/gas exporters projected to contract. Iraq, Libya, and smaller Gulf producers hit hardest by output disruption. Reconstruction costs already mounting. Refugee flows affecting Jordan, Lebanon, Iraq economics.</div>
+</div>
+</div>
+</div>
+
+<!-- ============ RISK INDEX ============ -->
+<div class="panel" id="risk">
+<div class="section-title">Composite Economic Risk Index — Day 49</div>
+
+<div class="eq-grid">
+<div class="eq-card">
+<div class="prob" style="color:#3fb950">62</div><span class="change-badge up">▲ +8</span>
+<h4>Recovery Trajectory</h4>
+<div class="bar-bg"><div class="bar-fill" style="width:62%;background:#3fb950"></div></div>
+<p style="margin-top:10px"><strong>Day 49:</strong> Hormuz reopening + ceasefire extension in principle = strongest recovery signal since war start. Oil normalization underway. Markets at ATH. Credit spreads tightening. Gulf CDS easing. Recovery probability surges on triple de-escalation. Main risk: ceasefire collapse reverses all gains.</p>
+</div>
+<div class="eq-card">
+<div class="prob" style="color:#d29922">48</div><span class="change-badge down">▼ -4</span>
+<h4>Stagflation Risk</h4>
+<div class="bar-bg"><div class="bar-fill" style="width:48%;background:#d29922"></div></div>
+<p style="margin-top:10px"><strong>Day 49:</strong> Still elevated despite ceasefire progress. Inflation expectations at 4.8% + consumer sentiment at historic low = textbook stagflation preconditions. Fertilizer shock locked in for 3-6 months. PMI still expanding (52.7) but may weaken if demand destruction materializes. Fed trapped between inflation and recession risk.</p>
+</div>
+<div class="eq-card">
+<div class="prob" style="color:#f85149">22</div><span class="change-badge down">▼ -6</span>
+<h4>Global Recession Trigger</h4>
+<div class="bar-bg"><div class="bar-fill" style="width:22%;background:#f85149"></div></div>
+<p style="margin-top:10px"><strong>Day 49:</strong> Recession probability dropping on ceasefire. Goldman Sachs at ~35% (lagging today's developments). IMF baseline avoids recession. BUT: 74-year low consumer sentiment is a leading indicator that has preceded every US recession. If consumers retrench, Q2/Q3 GDP could surprise negative. Watch retail sales and payrolls next.</p>
+</div>
+<div class="eq-card">
+<div class="prob" style="color:#a371f7">35</div><span class="change-badge flat">— flat</span>
+<h4>Supply Chain Permanent Damage</h4>
+<div class="bar-bg"><div class="bar-fill" style="width:35%;background:#a371f7"></div></div>
+<p style="margin-top:10px"><strong>Day 49:</strong> 7 weeks of disruption has forced structural shifts: shipping rerouting, insurance repricing, inventory rebuilding, supplier diversification. Some of this is permanent — companies won't fully revert to Hormuz-dependent supply chains even post-peace. Trade architecture changing. WTO growth forecast cut 58%. Paris Summit building new Hormuz framework.</p>
+</div>
+</div>
+
+<div class="chart-wrap" style="margin-top:16px">
+<h3>Economic Risk Trajectory — Day 1 to Day 49</h3>
+<div class="chart-box"><canvas id="riskChart"></canvas></div>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#a371f7"></span>Composite Risk Score Methodology</h3>
+<div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:16px;font-size:13px;color:#8b949e">
+<p><strong style="color:#c9d1d9">Inputs (weighted):</strong> Oil price deviation from pre-war baseline (20%) · VIX level (10%) · Consumer sentiment deviation (15%) · Credit spread widening (10%) · Shipping cost premium (10%) · Inflation expectations (15%) · Manufacturing PMI deviation (10%) · EM capital flows (10%)</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Phase classification:</strong> Day 49 = "De-escalation with Embedded Inflation." Markets recovering, risk premia compressing, but real-economy damage (consumer confidence, food/fertilizer prices, supply chain restructuring) persists. This is a "two-speed recovery" — financial markets heal fast, real economy heals slow.</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Key leading indicators to watch:</strong> (1) Ceasefire extension formal confirmation, (2) April retail sales data (consumer spending test), (3) May payrolls (labor lag), (4) Fertilizer price trajectory (food inflation lead), (5) War risk insurance premium normalization (shipping confidence), (6) Fed June meeting (policy response).</p>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="dot" style="background:#58a6ff"></span>Data Sources & API Infrastructure</h3>
+<div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:16px;font-size:13px;color:#8b949e">
+<p><strong style="color:#c9d1d9">Real-time (intraday):</strong> Oil prices (EIA API, OilPriceAPI) · Equities (Alpha Vantage, Yahoo Finance) · VIX (CBOE) · FX/DXY (FRED, TradingView) · Gold/Silver (Metals-API)</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Daily:</strong> Treasury yields (FRED DGS10/DGS2) · Credit spreads (FRED BAMLH0A0HYM2) · Baltic Dry Index (Baltic Exchange) · Container rates (Freightos FBX) · CDS spreads (Bloomberg/ICE)</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Weekly:</strong> EIA petroleum data · War risk insurance premiums (Lloyd's) · Jet fuel (IATA) · Natural gas storage</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Monthly:</strong> Consumer sentiment (Michigan) · PMI (ISM/S&P Global) · Conference Board · FAO Food Index · Fertilizer prices · CPI/PCE · Employment</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Quarterly:</strong> IMF WEO · GDP · WTO trade forecasts · Corporate earnings</p>
+<p style="margin-top:8px"><strong style="color:#c9d1d9">Free API stack for automation:</strong> FRED API (most macro + yields + spreads) · EIA API (energy) · Alpha Vantage (stocks, free tier) · Freightos (shipping) · FAO API (food prices). All support JSON, daily updates, and can feed a Python update script identical to the game theory dashboard's approach.</p>
+</div>
+</div>
+</div>
+
+</div><!-- /content -->
+
+<!-- FOOTER -->
+<div class="footer">
+Operation Epic Fury — Economic Impact Dashboard · Day 49 · April 17, 2026 · Sources: FRED, EIA, IMF, WTO, FAO, UNCTAD, Bloomberg, CBOE, Michigan Survey, ISM, Conference Board, Freightos, Baltic Exchange
+</div>
+
+<!-- SCRIPTS -->
+<script>
+// Tab switching
+function switchTab(id){
+document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+event.target.classList.add('active');
+}
+
+// Day labels D1 to D49
+const days = [];
+for(let i=1;i<=49;i++) days.push('D'+i);
+
+// === OIL PRICE CHART ===
+const oilCtx = document.getElementById('oilChart').getContext('2d');
+new Chart(oilCtx, {
+type:'line',
+data:{
+labels: days,
+datasets:[
+{label:'WTI Crude ($/bbl)',data:[80,85,92,98,105,112,118,125,130,135,138,142,145,148,150,148,145,142,138,135,132,128,125,122,120,118,115,112,110,108,106,104,102,100,98,96,95,94,94,96,98,100,102,104,103,101,99,95,94,93.74],borderColor:'#58a6ff',backgroundColor:'rgba(88,166,255,.1)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
+{label:'Brent Crude ($/bbl)',data:[84,89,96,102,109,116,122,129,134,139,143,147,150,153,155,153,150,147,143,140,137,133,130,127,125,123,120,117,115,113,111,109,107,105,103,101,100,99,99,101,103,105,107,109,108,106,104,100,99,88.73],borderColor:'#d29922',backgroundColor:'rgba(210,153,34,.1)',fill:true,tension:.3,pointRadius:0,borderWidth:2}
+]
+},
+options:{
+responsive:true,maintainAspectRatio:false,
+interaction:{intersect:false,mode:'index'},
+plugins:{legend:{labels:{color:'#8b949e',font:{size:12}}}},
+scales:{
+x:{ticks:{color:'#484f58',maxTicksLimit:15},grid:{color:'#21262d'}},
+y:{ticks:{color:'#484f58',callback:v=>'$'+v},grid:{color:'#21262d'},title:{display:true,text:'$/barrel',color:'#8b949e'}}
+}
+}
+});
+
+// === MARKET PERFORMANCE CHART ===
+const mktCtx = document.getElementById('marketChart').getContext('2d');
+new Chart(mktCtx, {
+type:'line',
+data:{
+labels: days,
+datasets:[
+{label:'S&P 500',data:[100,98.5,97,96,95,94.5,94,93.5,93,92.8,93,93.5,94,94.5,95,95.5,96,96.5,97,97.5,98,98.5,99,99.5,100,100.5,101,101.5,102,102.5,103,103.2,103.5,103.8,104,104.2,104.5,104.8,105,105.3,105.5,105.8,106,106.3,106.5,106.8,107,107.3,107.5,108.2],borderColor:'#58a6ff',tension:.3,pointRadius:0,borderWidth:2},
+{label:'VIX (inverted scale = calm)',data:[100,88,82,78,75,73,72,70,68,67,68,70,72,74,76,78,80,82,84,85,86,87,88,89,90,91,92,92.5,93,93.5,94,94.5,95,95.5,96,96.5,97,97.2,97.5,96,95,94,93,92,93,94,95,96,97,98],borderColor:'#f85149',tension:.3,pointRadius:0,borderWidth:2,borderDash:[5,5]},
+{label:'Defense Sector (ITA)',data:[100,103,106,109,112,115,118,121,124,126,128,129,130,131,132,131,130,129,128,127,126,125,125,125,126,127,128,128.5,129,129,128.5,128,127.5,127,126.5,126,125.5,125,124.5,124,123.5,123,122.5,122,121.5,121,120.5,120,119.5,118],borderColor:'#3fb950',tension:.3,pointRadius:0,borderWidth:2},
+{label:'Gold',data:[100,98,96,94.5,94,94.2,94.5,95,95.5,96,96.5,97,97.5,98,98.5,99,99.5,100,100.5,101,101.5,102,102.5,103,103.5,104,104.5,105,105.5,106,106.5,107,107.5,108,108.5,109,109.5,110,110.5,111,111.5,112,112.5,113,113.5,114,114.5,115,115.5,116],borderColor:'#d29922',tension:.3,pointRadius:0,borderWidth:2}
+]
+},
+options:{
+responsive:true,maintainAspectRatio:false,
+interaction:{intersect:false,mode:'index'},
+plugins:{legend:{labels:{color:'#8b949e',font:{size:12}}}},
+scales:{
+x:{ticks:{color:'#484f58',maxTicksLimit:15},grid:{color:'#21262d'}},
+y:{ticks:{color:'#484f58',callback:v=>v},grid:{color:'#21262d'},title:{display:true,text:'Indexed (D1=100)',color:'#8b949e'}}
+}
+}
+});
+
+// === MACRO CHART ===
+const macCtx = document.getElementById('macroChart').getContext('2d');
+new Chart(macCtx, {
+type:'line',
+data:{
+labels: ['Pre-War','Wk1','Wk2','Wk3','Wk4','Wk5','Wk6','Wk7 (Now)'],
+datasets:[
+{label:'Consumer Sentiment (Michigan)',data:[57.9,56,54,52,50,49,48,47.6],borderColor:'#f85149',backgroundColor:'rgba(248,81,73,.1)',fill:true,tension:.3,borderWidth:2,yAxisID:'y'},
+{label:'1-Year Inflation Expect. (%)',data:[3.8,3.9,4.0,4.1,4.3,4.5,4.6,4.8],borderColor:'#d29922',backgroundColor:'rgba(210,153,34,.1)',fill:true,tension:.3,borderWidth:2,yAxisID:'y1'},
+{label:'ISM Manufacturing PMI',data:[52.4,52.5,52.5,52.6,52.6,52.7,52.7,52.7],borderColor:'#3fb950',tension:.3,borderWidth:2,pointRadius:3,yAxisID:'y'}
+]
+},
+options:{
+responsive:true,maintainAspectRatio:false,
+interaction:{intersect:false,mode:'index'},
+plugins:{legend:{labels:{color:'#8b949e',font:{size:12}}}},
+scales:{
+x:{ticks:{color:'#484f58'},grid:{color:'#21262d'}},
+y:{type:'linear',position:'left',ticks:{color:'#484f58'},grid:{color:'#21262d'},title:{display:true,text:'Index Level',color:'#8b949e'},min:40,max:60},
+y1:{type:'linear',position:'right',ticks:{color:'#d29922',callback:v=>v+'%'},grid:{drawOnChartArea:false},title:{display:true,text:'Inflation Expect. %',color:'#d29922'},min:3,max:6}
+}
+}
+});
+
+// === RISK INDEX CHART ===
+const riskCtx = document.getElementById('riskChart').getContext('2d');
+new Chart(riskCtx, {
+type:'line',
+data:{
+labels: days,
+datasets:[
+{label:'Recovery Trajectory',data:[50,45,40,38,35,33,30,28,26,25,24,24,25,26,27,28,30,32,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,52,50,48,47,48,50,52,54,56,58,62],borderColor:'#3fb950',tension:.3,pointRadius:0,borderWidth:2},
+{label:'Stagflation Risk',data:[30,35,40,45,50,55,58,60,62,63,64,64,63,62,61,60,58,57,56,55,55,54,54,53,53,52,52,52,51,51,51,50,50,50,50,50,50,50,50,51,52,53,52,51,50,49,49,48,48,48],borderColor:'#d29922',tension:.3,pointRadius:0,borderWidth:2},
+{label:'Recession Trigger',data:[15,20,25,30,35,38,40,42,43,44,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,30,29,29,28,28,28,27,27,27,27,26,26,26,26,27,28,29,28,27,26,25,24,23,22,22],borderColor:'#f85149',tension:.3,pointRadius:0,borderWidth:2},
+{label:'Supply Chain Damage',data:[10,15,20,25,28,30,32,33,34,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35],borderColor:'#a371f7',tension:.3,pointRadius:0,borderWidth:2,borderDash:[5,5]}
+]
+},
+options:{
+responsive:true,maintainAspectRatio:false,
+interaction:{intersect:false,mode:'index'},
+plugins:{legend:{labels:{color:'#8b949e',font:{size:12}}}},
+scales:{
+x:{ticks:{color:'#484f58',maxTicksLimit:15},grid:{color:'#21262d'}},
+y:{ticks:{color:'#484f58',callback:v=>v+'%'},grid:{color:'#21262d'},title:{display:true,text:'Probability / Risk Score',color:'#8b949e'},min:0,max:100}
+}
+}
+});
+</script>
+</body>
+</html>
