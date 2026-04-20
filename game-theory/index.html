@@ -28,7 +28,7 @@ a{color:#58a6ff;text-decoration:none}
 .header h1{font-size:22px;color:#f0f6fc;font-weight:700}
 .header h1 .day{color:#f85149;font-weight:800}
 .header .meta{font-size:13px;color:#8b949e}
-<div class="status-badges">
+.header .status-badges{display:flex;gap:8px;flex-wrap:wrap}
 .badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase}
 .badge.red{background:rgba(248,81,73,.15);color:#f85149;border:1px solid rgba(248,81,73,.4)}
 .badge.yellow{background:rgba(210,153,34,.15);color:#d29922;border:1px solid rgba(210,153,34,.4)}
@@ -209,6 +209,7 @@ a{color:#58a6ff;text-decoration:none}
 
 <!-- ============ OVERVIEW ============ -->
 <div class="panel active" id="overview">
+<div class="metrics">
 <div class="metric red"><div class="value">SEIZED</div><div class="label">USS Spruance Takes Touska</div></div>
 <div class="metric red"><div class="value">SKIPS</div><div class="label">Iran: No Negotiators to Islamabad</div></div>
 <div class="metric red"><div class="value">CLOSED</div><div class="label">Hormuz Completely Shut</div></div>
@@ -217,7 +218,6 @@ a{color:#58a6ff;text-decoration:none}
 <div class="metric red"><div class="value">PIRACY</div><div class="label">Iran: "Armed Robbery at Sea"</div></div>
 <div class="metric red"><div class="value">2 DAYS</div><div class="label">Ceasefire Expiry Apr 22</div></div>
 <div class="metric red"><div class="value">40%</div><div class="label">Catastrophic Escalation Prob</div></div>
-<div class="metric yellow"><div class="value">23</div><div class="label">Ships Turned Back (Blockade)</div></div>
 </div>
 
 <div class="card">
