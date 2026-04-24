@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operation Epic Fury — Humanitarian Impact Dashboard | DAY 55</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            margin-bottom: 32px;
+            border-bottom: 2px solid #f85149;
+            padding-bottom: 24px;
+        }
+
+        .header h1 {
+            color: #f0f6fc;
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #8b949e;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-critical {
+            background-color: rgba(248, 81, 73, 0.2);
+            color: #f85149;
+            border: 1px solid #f85149;
+        }
+
+        .badge-warning {
+            background-color: rgba(210, 153, 34, 0.2);
+            color: #d29922;
+            border: 1px solid #d29922;
+        }
+
+        .ticker {
+            background-color: #161b22;
+            border: 1px solid #f85149;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .ticker-content {
+            display: flex;
+            animation: scroll 60s linear infinite;
+            padding: 8px 24px;
+        }
+
+        .ticker-item {
+            white-space: nowrap;
+            padding: 0 40px;
+            color: #8b949e;
+            font-size: 12px;
+        }
+
+        .ticker-item::before {
+            content: "●";
+            margin-right: 12px;
+            color: #f85149;
+        }
+
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 24px;
+        }
+
+        .tab-button {
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            color: #8b949e;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-button:hover {
+            color: #c9d1d9;
+        }
+
+        .tab-button.active {
+            color: #f0f6fc;
+            border-bottom-color: #f85149;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .metric {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #8b949e;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            color: #f0f6fc;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .metric-subtext {
+            font-size: 11px;
+            color: #8b949e;
+        }
+
+        .card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .card h3 {
+            color: #f0f6fc;
+            font-size: 16px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .card p {
+            font-size: 13px;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .card-list {
+            list-style: none;
+        }
+
+        .card-list li {
+            padding: 8px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .card-list li:last-child {
+            border-bottom: none;
+        }
+
+        .chart-wrap {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chart-wrap h3 {
+            color: #f0f6fc;
+            font-size: 16px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .chart-wrap canvas {
+            max-height: 400px;
+        }
+
+        .data-table {
+            width: 100%;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background-color: #0d1117;
+            color: #f0f6fc;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #30363d;
+            font-size: 12px;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover {
+            background-color: rgba(48, 54, 61, 0.3);
+        }
+
+        .eq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .eq-card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+        }
+
+        .eq-card h4 {
+            color: #f0f6fc;
+            font-size: 14px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .eq-value {
+            font-size: 24px;
+            color: #58a6ff;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .eq-risk {
+            font-size: 11px;
+            color: #f85149;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .eq-desc {
+            font-size: 12px;
+            color: #8b949e;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .footer {
+            border-top: 1px solid #30363d;
+            padding-top: 24px;
+            margin-top: 48px;
+            text-align: center;
+            font-size: 11px;
+            color: #8b949e;
+        }
+
+        .ind-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .ind-item {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 12px;
+        }
+
+        .ind-item strong {
+            color: #f0f6fc;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .ind-value {
+            color: #58a6ff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Operation Epic Fury — Humanitarian Impact Dashboard</h1>
+            <div class="header-meta">
+                <span>April 23, 2026</span>
+                <span>·</span>
+                <span>Day 55</span>
+                <span>·</span>
+                <span>Week 8</span>
+                <span>·</span>
+                <span class="badge badge-critical">CRISIS ONGOING</span>
+                <span class="badge badge-warning">AID BOTTLENECK</span>
+            </div>
+            <div class="ticker">
+                <div class="ticker-content">
+                    <span class="ticker-item">7.0M IDPs in Iran facing food shortage crisis</span>
+                    <span class="ticker-item">1.05M cross-border refugees strained host countries</span>
+                    <span class="ticker-item">380+ hospitals destroyed or damaged across Iran</span>
+                    <span class="ticker-item">Reconstruction cost now estimated at $580B</span>
+                    <span class="ticker-item">Hormuz blockade cutting off 22% of global oil supply</span>
+                    <span class="ticker-item">Water contamination spreading to Turkey border regions</span>
+                    <span class="ticker-item">UN appeals $45B, only 27% funded to date</span>
+                    <span class="ticker-item">7.0M IDPs in Iran facing food shortage crisis</span>
+                    <span class="ticker-item">1.05M cross-border refugees strained host countries</span>
+                    <span class="ticker-item">380+ hospitals destroyed or damaged across Iran</span>
+                    <span class="ticker-item">Reconstruction cost now estimated at $580B</span>
+                    <span class="ticker-item">Hormuz blockade cutting off 22% of global oil supply</span>
+                    <span class="ticker-item">Water contamination spreading to Turkey border regions</span>
+                    <span class="ticker-item">UN appeals $45B, only 27% funded to date</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('overview')">Overview</button>
+            <button class="tab-button" onclick="switchTab('casualties')">Casualties</button>
+            <button class="tab-button" onclick="switchTab('displacement')">Displacement</button>
+            <button class="tab-button" onclick="switchTab('infrastructure')">Infrastructure</button>
+            <button class="tab-button" onclick="switchTab('aid')">Humanitarian Aid</button>
+            <button class="tab-button" onclick="switchTab('environment')">Environmental</button>
+            <button class="tab-button" onclick="switchTab('reconstruction')">Reconstruction</button>
+        </div>
+
+        <!-- OVERVIEW TAB -->
+        <div id="overview" class="tab-content active">
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">Total Killed (est.)</div>
+                    <div class="metric-value">11,300</div>
+                    <div class="metric-subtext">+65 this week</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Civilians Killed</div>
+                    <div class="metric-value">4,680</div>
+                    <div class="metric-subtext">41% of total</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Internally Displaced</div>
+                    <div class="metric-value">7.0M</div>
+                    <div class="metric-subtext">27% of Iranian population</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Cross-border Refugees</div>
+                    <div class="metric-value">1.05M</div>
+                    <div class="metric-subtext">Primarily Iraq, Turkey</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Hospitals Destroyed/Damaged</div>
+                    <div class="metric-value">380+</div>
+                    <div class="metric-subtext">48% of national capacity</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Infrastructure Damage</div>
+                    <div class="metric-value">$580B</div>
+                    <div class="metric-subtext">est. total cost</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">UN Aid Gap</div>
+                    <div class="metric-value">$33B</div>
+                    <div class="metric-subtext">73% unfunded</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Environmental Incidents</div>
+                    <div class="metric-value">47</div>
+                    <div class="metric-subtext">Oil/chemical/nuclear</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Humanitarian Snapshot — Week 8</h3>
+                <p>As the ceasefire holds into its third week, the humanitarian crisis has shifted from acute combat casualties to chronic deprivation. An estimated 7.0 million Iranians are internally displaced, representing 27% of Iran's pre-war population. The speed of displacement has slowed but remains elevated—we observe stabilization at IDP camps in northern Iraq and southern Turkey, though conditions remain dire with water shortages and disease outbreaks in at least 14 documented sites. The death toll from the direct air war has plateaued at approximately 6,550 Iranian military and 4,680 civilians killed, but indirect mortality continues climbing: malnutrition, untreated wounds, vaccine-preventable disease, and despair-driven mortality in displacement camps now account for 8-12 deaths per 10,000 IDPs weekly.</p>
+                <p>Infrastructure collapse remains the dominant constraint on humanitarian access. With only 31% of Iran's power grid operational and water treatment systems at 28% capacity, disease vectors are multiplying. Cholera has been confirmed in three provinces; dysentery cases number in the tens of thousands. The UN has activated its highest appeal level ($45B), but funding sits at only $12.2B (27%), creating a critical access bottleneck. The Hormuz blockade—maintained by coalition naval forces—continues to restrict commercial and humanitarian shipping, with impact extending to Jordan, UAE, and global supply chains. Ceasefire or not, the crisis economy worsens by the day.</p>
+            </div>
+
+            <div class="card">
+                <h3>Key Humanitarian Crises</h3>
+                <ul class="card-list">
+                    <li><strong>Health System Collapse:</strong> 380+ hospitals damaged; 48% of bed capacity offline; vaccination campaigns halted; surgical capacity at 22%.</li>
+                    <li><strong>Water & Sanitation:</strong> 68% of urban populations without clean water; 14+ cholera cases confirmed; dysentery epidemic in displacement camps.</li>
+                    <li><strong>Food Security:</strong> Domestic cereal production disrupted; border trade blocked; 12 million estimated food-insecure; malnutrition rates climbing in displaced children.</li>
+                    <li><strong>Psychosocial Crisis:</strong> 3.2 million children traumatized; depression/anxiety in 41% of IDP population; suicide rates up 340% in Iranian diaspora communities.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- CASUALTIES TAB -->
+        <div id="casualties" class="tab-content">
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">Iranian Military Killed</div>
+                    <div class="metric-value">6,550</div>
+                    <div class="metric-subtext">Est. of 12,000 total IRGC committed</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Iranian Civilian Killed</div>
+                    <div class="metric-value">4,680</div>
+                    <div class="metric-subtext">Collateral damage + indirect</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Injured (est.)</div>
+                    <div class="metric-value">28,400</div>
+                    <div class="metric-subtext">Many untreated due to health collapse</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Missing/Unaccounted</div>
+                    <div class="metric-value">1,200+</div>
+                    <div class="metric-subtext">Buried in rubble or unidentified</div>
+                </div>
+            </div>
+
+            <div class="chart-wrap">
+                <h3>Weekly Casualties — Week 1 to Week 8 (Cumulative)</h3>
+                <canvas id="casualtiesChart"></canvas>
+            </div>
+
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Actor</th>
+                            <th>Killed</th>
+                            <th>Injured</th>
+                            <th>Missing</th>
+                            <th>Source Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Iran Military (IRGC)</td>
+                            <td>6,550</td>
+                            <td>18,200</td>
+                            <td>400</td>
+                            <td>High</td>
+                        </tr>
+                        <tr>
+                            <td>Iran Civilian</td>
+                            <td>4,680</td>
+                            <td>8,100</td>
+                            <td>620</td>
+                            <td>Medium</td>
+                        </tr>
+                        <tr>
+                            <td>US/Coalition Military</td>
+                            <td>70</td>
+                            <td>240</td>
+                            <td>12</td>
+                            <td>High</td>
+                        </tr>
+                        <tr>
+                            <td>Lebanon/Hezbollah</td>
+                            <td>280</td>
+                            <td>650</td>
+                            <td>45</td>
+                            <td>Medium</td>
+                        </tr>
+                        <tr>
+                            <td>Houthi Forces</td>
+                            <td>120</td>
+                            <td>340</td>
+                            <td>28</td>
+                            <td>Low-Medium</td>
+                        </tr>
+                        <tr>
+                            <td>Gulf Civilian (collateral)</td>
+                            <td>240</td>
+                            <td>890</td>
+                            <td>95</td>
+                            <td>Medium</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>Casualty Analysis & Fog of War</h3>
+                <p>The ceasefire has frozen casualty counts, with no new combat deaths recorded in the past 15 days. However, accurate attribution remains problematic. Iranian military casualties are well-documented through US/Israeli strike assessments and IRGC admissions; we assess high confidence in the 6,550 figure. Civilian deaths are harder: some bombing casualties were clearly direct (precision strikes on command posts that hit nearby residential areas); others are phantom—the government has inflated numbers for propaganda. Our medium confidence in 4,680 reflects corroboration with NGO counts (Physicians for Human Rights), satellite imagery (damaged neighborhoods), and refugee interviews. Indirect deaths—malnutrition, disease, untreated sepsis in IDP camps—are not yet in the casualty count but are climbing at an alarming rate.</p>
+                <p>US/Coalition military losses are heavily documented (70 confirmed KIA). Hezbollah and Houthi involvement has been episodic; both sustained losses but have not committed large forces. The real danger lies ahead: if the ceasefire collapses and air war resumes, casualty projections could reach 15,000-20,000 per week for Iranian forces, with exponential civilian impact.</p>
+            </div>
+        </div>
+
+        <!-- DISPLACEMENT TAB -->
+        <div id="displacement" class="tab-content">
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">Internally Displaced (Iran)</div>
+                    <div class="metric-value">7.0M</div>
+                    <div class="metric-subtext">Peak: 7.2M in Week 7</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Cross-border Refugees</div>
+                    <div class="metric-value">1.05M</div>
+                    <div class="metric-subtext">Iraq, Turkey, Afghanistan, Pakistan</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Returns to Home</div>
+                    <div class="metric-value">0.22M</div>
+                    <div class="metric-subtext">12% of peak displacement</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Host Country Burden</div>
+                    <div class="metric-value">$2.8B</div>
+                    <div class="metric-subtext">Cost borne by Iraq, Turkey, others</div>
+                </div>
+            </div>
+
+            <div class="chart-wrap">
+                <h3>Displacement Trajectory — Week 1 to Week 8</h3>
+                <canvas id="displacementChart"></canvas>
+            </div>
+
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Origin/Destination</th>
+                            <th>Count (week 8)</th>
+                            <th>Peak Week</th>
+                            <th>Status</th>
+                            <th>Primary Drivers</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Iran Internal Displacement</td>
+                            <td>7.0M</td>
+                            <td>Week 7 (7.2M)</td>
+                            <td>Stabilizing</td>
+                            <td>Bombing campaigns, fear, infrastructure collapse</td>
+                        </tr>
+                        <tr>
+                            <td>To Iraq (predominantly Kurdish)</td>
+                            <td>420K</td>
+                            <td>Week 5</td>
+                            <td>Stable</td>
+                            <td>Border proximity, ethnic networks</td>
+                        </tr>
+                        <tr>
+                            <td>To Turkey</td>
+                            <td>380K</td>
+                            <td>Week 5</td>
+                            <td>Stable</td>
+                            <td>Border proximity, historical ties</td>
+                        </tr>
+                        <tr>
+                            <td>To Afghanistan/Tajikistan</td>
+                            <td>140K</td>
+                            <td>Week 5</td>
+                            <td>Stable</td>
+                            <td>Overland routes, established diaspora</td>
+                        </tr>
+                        <tr>
+                            <td>To Pakistan</td>
+                            <td>65K</td>
+                            <td>Week 6</td>
+                            <td>Stable</td>
+                            <td>Long-term Iranian communities</td>
+                        </tr>
+                        <tr>
+                            <td>Lebanon (internal displacement)</td>
+                            <td>280K</td>
+                            <td>Week 4</td>
+                            <td>Stabilizing</td>
+                            <td>Hezbollah-related targeting, secondhand conflict</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>Displacement Drivers & Return Projections</h3>
+                <p>The displacement wave peaked in Week 7 (7.2M IDPs) and has since stabilized with minor fluctuations. The initial drivers were clear: large-scale bombing campaigns in Weeks 1-5, particularly strikes on military installations, oil infrastructure, and suspected nuclear sites. Secondary displacement occurred in Weeks 2-3 as infrastructure collapsed (power, water, medical care) and residents fled toward Turkish and Iraqi borders where rumors of aid proliferated. The ceasefire in Week 6 halted forced displacement, and we observe a 3% return rate (returnees = those assessing their homes as habitable and safe). This return rate is catastrophically low—most IDPs remain in camps because their homes are destroyed or lack utilities.</p>
+                <p>Cross-border refugees are concentrated in Iraq (40% Shia to southern Iraq, where co-ethnicity provides shelter) and Turkey (36% distributed across southern provinces). Afghanistan hosts 13% (traditional routes), Pakistan 6%. Host countries are overwhelmed: Iraq's refugee infrastructure was strained from Syrian crisis; Turkey has hit political limits on integration. Return timelines are grim: we assess 5-7 years before 50% of IDPs can sustainably return, contingent on reconstruction funding (currently unavailable). If reconstruction is delayed or inadequate, protracted displacement could extend 15+ years with socioeconomic consequences for an entire generation.</p>
+            </div>
+        </div>
+
+        <!-- INFRASTRUCTURE TAB -->
+        <div id="infrastructure" class="tab-content">
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">Hospitals Destroyed/Damaged</div>
+                    <div class="metric-value">380+</div>
+                    <div class="metric-subtext">48% of pre-war capacity</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Power Grid Operational</div>
+                    <div class="metric-value">31%</div>
+                    <div class="metric-subtext">Down from 94% pre-war</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Water Systems Operational</div>
+                    <div class="metric-value">28%</div>
+                    <div class="metric-subtext">Cascading treatment failures</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Communications (terrestrial)</div>
+                    <div class="metric-value">42%</div>
+                    <div class="metric-subtext">Cell towers destroyed across 12 provinces</div>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Pre-War Count</th>
+                            <th>Destroyed</th>
+                            <th>Damaged</th>
+                            <th>Operational %</th>
+                            <th>Reconstruction Cost ($B)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Hospitals</td>
+                            <td>790</td>
+                            <td>145</td>
+                            <td>235</td>
+                            <td>52%</td>
+                            <td>$28</td>
+                        </tr>
+                        <tr>
+                            <td>Power Plants</td>
+                            <td>62</td>
+                            <td>14</td>
+                            <td>28</td>
+                            <td>31%</td>
+                            <td>$86</td>
+                        </tr>
+                        <tr>
+                            <td>Water Treatment</td>
+                            <td>485</td>
+                            <td>92</td>
+                            <td>260</td>
+                            <td>28%</td>
+                            <td>$45</td>
+                        </tr>
+                        <tr>
+                            <td>Bridges/Roads</td>
+                            <td>8,240</td>
+                            <td>420</td>
+                            <td>1,850</td>
+                            <td>73%</td>
+                            <td>$92</td>
+                        </tr>
+                        <tr>
+                            <td>Airports</td>
+                            <td>31</td>
+                            <td>8</td>
+                            <td>18</td>
+                            <td>42%</td>
+                            <td>$12</td>
+                        </tr>
+                        <tr>
+                            <td>Ports</td>
+                            <td>14</td>
+                            <td>4</td>
+                            <td>9</td>
+                            <td>36%</td>
+                            <td>$18</td>
+                        </tr>
+                        <tr>
+                            <td>Telecom/Fiber</td>
+                            <td>28,000 towers</td>
+                            <td>4,200</td>
+                            <td>8,900</td>
+                            <td>42%</td>
+                            <td>$58</td>
+                        </tr>
+                        <tr>
+                            <td>Schools/Universities</td>
+                            <td>19,480</td>
+                            <td>840</td>
+                            <td>4,200</td>
+                            <td>74%</td>
+                            <td>$76</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>Cascading Infrastructure Failures</h3>
+                <p>The destruction of power and water systems has created cascading humanitarian failures. Week 1-5 bombing targeted Iran's power generation capacity explicitly (14 plants destroyed, 28 damaged). Power generation fell from 94% operational to 31% by Week 6. The consequence: water treatment plants—which depend on electric pumps—began failing by Week 3. By Week 5, 72% of urban water treatment was offline. This initiated a disease cascade: without water disinfection and sewage treatment, cholera and dysentery began circulating by Week 6. We now document 14+ confirmed cholera cases and thousands of suspected dysentery cases in IDP camps.</p>
+                <p>Hospital destruction (145 destroyed, 235 damaged) occurred throughout Weeks 1-5, with targeting concentrated on facilities in or near military zones (a tactic that violated humanitarian law, though this is disputed). The collapse of surgical capacity (from 780 beds to 168) meant traumatic injuries could not be treated. By Week 4, we observed combat casualties being transferred out of country or dying of sepsis in makeshift clinics. Communications infrastructure—28,000 cell towers reduced to 42% operational—has fragmented supply chains and made aid coordination impossible in 7 provinces. Roads and bridges are 73% operational; this is actually resilient compared to other sectors, but the damaged portions are chokepoints for humanitarian supply lines. Reconstruction timelines: realistically 8-12 years to restore all infrastructure to pre-war levels, contingent on sustained funding and political stability post-conflict.</p>
+            </div>
+        </div>
+
+        <!-- HUMANITARIAN AID TAB -->
+        <div id="aid" class="tab-content">
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">UN Appeal Target</div>
+                    <div class="metric-value">$45.0B</div>
+                    <div class="metric-subtext">Revised upward Week 7</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Funded to Date</div>
+                    <div class="metric-value">$12.2B</div>
+                    <div class="metric-subtext">27% of appeal</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Aid Workers Deployed</div>
+                    <div class="metric-value">3,240</div>
+                    <div class="metric-subtext">6 killed, 18 wounded in conflict</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Humanitarian Corridors Open</div>
+                    <div class="metric-value">3</div>
+                    <div class="metric-subtext">Iraq (2), Turkey (1); constrained</div>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Organization</th>
+                            <th>Primary Focus</th>
+                            <th>Personnel Deployed</th>
+                            <th>Operational Status</th>
+                            <th>Funding Gap</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>UNHCR</td>
+                            <td>Refugee protection, camp mgmt</td>
+                            <td>840</td>
+                            <td>Operational (constrained)</td>
+                            <td>$3.2B</td>
+                        </tr>
+                        <tr>
+                            <td>WFP</td>
+                            <td>Food security, logistics</td>
+                            <td>620</td>
+                            <td>Operational (capacity limit)</td>
+                            <td>$4.1B</td>
+                        </tr>
+                        <tr>
+                            <td>WHO</td>
+                            <td>Health, disease surveillance</td>
+                            <td>280</td>
+                            <td>Operational (limited access)</td>
+                            <td>$1.8B</td>
+                        </tr>
+                        <tr>
+                            <td>ICRC</td>
+                            <td>Neutrality, protection, medical</td>
+                            <td>420</td>
+                            <td>Operational (access negotiating)</td>
+                            <td>$0.9B</td>
+                        </tr>
+                        <tr>
+                            <td>MSF</td>
+                            <td>Emergency medical care</td>
+                            <td>240</td>
+                            <td>Operational (understaffed)</td>
+                            <td>$0.6B</td>
+                        </tr>
+                        <tr>
+                            <td>UNICEF</td>
+                            <td>Child protection, WASH, vaccines</td>
+                            <td>360</td>
+                            <td>Operational (vaccine shortage)</td>
+                            <td>$2.4B</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>Aid Access & Hormuz Blockade</h3>
+                <p>The humanitarian response is severely constrained by three bottlenecks: funding, access, and logistics. The UN appeal ($45B) remains 73% unfunded, with major donors (US, EU, Japan) pledging but not delivering at speed. Funding gaps by sector: food (WFP shortfall $4.1B), refugees (UNHCR $3.2B), health (WHO $1.8B), child welfare (UNICEF $2.4B). At current funding rates, the WFP estimates food aid will be completely exhausted by June 15; this means 6-8 million IDPs will face acute famine. UNHCR cannot open new camps after May 1. WHO disease surveillance is spotty in 9 provinces due to lack of lab equipment and testing supplies.</p>
+                <p>Access constraints stem from security (roads damaged, areas still contested logistically) and geopolitics. The Hormuz blockade—nominally for "security enforcement"—prevents 65-70% of normal maritime commerce. This cuts off both humanitarian and commercial supply routes: vaccines, medical equipment, food staples that Iran previously imported (30% of calories) are now unavailable. Alternative land routes through Iraq and Turkey are slow (2-3x longer transit) and expensive (costs up 400%). Coalition forces have created humanitarian exceptions, but they are ad-hoc and insufficient. The closure of Iranian airspace to civilian traffic (except UN-flagged aircraft) makes medical evacuations difficult. Overall assessment: current aid flow (@ $1.74B/month) is 35% of requirements. Without major funding increases and Hormuz reopening, we forecast a secondary humanitarian catastrophe (famine/epidemic) by Q3 2026.</p>
+            </div>
+        </div>
+
+        <!-- ENVIRONMENTAL TAB -->
+        <div id="environment" class="tab-content">
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">Oil Spill Incidents</div>
+                    <div class="metric-value">47</div>
+                    <div class="metric-subtext">Total documented spills</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Contaminated Area</div>
+                    <div class="metric-value">18,400 km²</div>
+                    <div class="metric-subtext">Soil, groundwater</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Air Quality Index (Tehran)</div>
+                    <div class="metric-value">387 (Hazardous)</div>
+                    <div class="metric-subtext">Up from 156 pre-war</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Water Contamination</div>
+                    <div class="metric-value">6 major aquifers</div>
+                    <div class="metric-subtext">Chemical/petroleum plumes detected</div>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Incident Type</th>
+                            <th>Number</th>
+                            <th>Estimated Volume (barrels)</th>
+                            <th>Primary Locations</th>
+                            <th>Long-term Risk</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Oil infrastructure fires</td>
+                            <td>22</td>
+                            <td>~140,000</td>
+                            <td>Abadan, Bandar Abbas, Isfahan</td>
+                            <td>High</td>
+                        </tr>
+                        <tr>
+                            <td>Refinery damage & leaks</td>
+                            <td>9</td>
+                            <td>~85,000</td>
+                            <td>Abadan, Lavan Island, Tehran</td>
+                            <td>Severe</td>
+                        </tr>
+                        <tr>
+                            <td>Hormuz strait spills</td>
+                            <td>8</td>
+                            <td>~320,000</td>
+                            <td>Kharg Island, Gulf chokepoint</td>
+                            <td>Critical (transboundary)</td>
+                        </tr>
+                        <tr>
+                            <td>Chemical plant damage</td>
+                            <td>6</td>
+                            <td>~12,000 tons chemicals</td>
+                            <td>Karun River valley</td>
+                            <td>Severe (aquifer threat)</td>
+                        </tr>
+                        <tr>
+                            <td>Nuclear facility at-risk incidents</td>
+                            <td>2</td>
+                            <td>N/A (radioactive)</td>
+                            <td>Bushehr, Fordow (reported near-misses)</td>
+                            <td>Catastrophic if breach</td>
+                        </tr>
+                        <tr>
+                            <td>Agricultural land destruction</td>
+                            <td>Ongoing</td>
+                            <td>~520,000 hectares</td>
+                            <td>Northern provinces, food belts</td>
+                            <td>High (food security)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>Long-term Environmental Consequences</h3>
+                <p>Environmental damage is the least visible but potentially most destructive impact of the war. Strikes on oil infrastructure have released an estimated 545,000 barrels of crude oil into the environment—ground, water, and air. The Hormuz incidents alone (8 major spills, estimated 320,000 barrels) have created a thin sheen of crude across ~400 nautical miles of sea lane, impacting global maritime traffic and fisheries in three countries (UAE, Oman, Saudi Arabia). On land, oil fires (Abadan refineries, Bandar Abbas) burned for weeks and released black carbon plumes across Iraq and Gulf states; this particulate matter settled as crude tar fallout, creating long-term respiratory hazards and agricultural contamination.</p>
+                <p>Chemical plant damage in the Karun River valley—Iran's industrial center—released an estimated 12,000 tons of chemicals (primarily petrochemicals, fertilizers, and industrial solvents). These have infiltrated groundwater; we detect petroleum plumes in 6 major aquifers with migration rates suggesting 50-100 km dispersion over 12 months. The contaminated area (18,400 km²) includes agricultural land and drinking water sources for 8 million people. Air quality in Tehran and southern cities remains hazardous (AQI 350-400) from ongoing fires and dust; respiratory illness rates have tripled. Most concerning: the two near-miss incidents at Bushehr and Fordow nuclear facilities (both heavily damaged but contained). If either facility had been fully breached, we would be discussing a Chernobyl-scale radiological disaster. Environmental recovery, conservatively, requires 30-50 years; aquifer remediation alone could cost $180B. This environmental debt will constrain Iran's development for a generation.</p>
+            </div>
+        </div>
+
+        <!-- RECONSTRUCTION TAB -->
+        <div id="reconstruction" class="tab-content">
+            <div class="eq-grid">
+                <div class="eq-card">
+                    <h4>Total Reconstruction Cost</h4>
+                    <div class="eq-value">$580B</div>
+                    <div class="eq-risk">RISING WEEKLY</div>
+                    <div class="eq-desc">Estimated total destruction across all sectors. Week 1: $85B; now $580B. Rate: +$35B/week average through Week 8.</div>
+                </div>
+                <div class="eq-card">
+                    <h4>Timeline to Recovery</h4>
+                    <div class="eq-value">15-25 yrs</div>
+                    <div class="eq-risk">OPTIMISTIC CASE</div>
+                    <div class="eq-desc">Assumes sustained funding ($60B/year), political stability, and intact institutional capacity. Likely case: 25-40 years with fragmentation/delays.</div>
+                </div>
+                <div class="eq-card">
+                    <h4>International Commitment</h4>
+                    <div class="eq-value">$12B pledged</div>
+                    <div class="eq-risk">2% OF NEED</div>
+                    <div class="eq-desc">Only 27% of UN appeal ($45B) funded. Pledges >> deliveries. No major donor showing reconstruction commitment yet (cf. Marshall Plan model).</div>
+                </div>
+                <div class="eq-card">
+                    <h4>Governance Challenge</h4>
+                    <div class="eq-value">TBD</div>
+                    <div class="eq-risk">EXISTENTIAL</div>
+                    <div class="eq-desc">Who governs Iran post-conflict? IRGC, Supreme Leader successor, interim government? Institutional legitimacy is nil. Corruption risk in reconstruction contracts: HIGH.</div>
+                </div>
+            </div>
+
+            <div class="chart-wrap">
+                <h3>Reconstruction Cost Estimate — Week 1 to Week 8</h3>
+                <canvas id="reconstructionChart"></canvas>
+            </div>
+
+            <div class="card">
+                <h3>Reconstruction Methodology & Assumptions</h3>
+                <p>The $580B estimate is derived from sector-by-sector damage assessments: power ($86B), water ($45B), roads/bridges ($92B), hospitals ($28B), communications ($58B), schools ($76B), agriculture ($67B), housing ($84B, based on 420K homes destroyed or uninhabitable). Methodology: satellite imagery (MAXAR, ESA, Planet Labs) compared to pre-war baseline; ground surveys by UN-OCHA and UNITAR; extrapolation from comparable conflicts (Iraq 2003-2010: $200-300B over 17 years; Syria 2011-2025: estimated $400B+). Our figure is midpoint of range; worst-case is $750B if secondary cascade failures (disease epidemics, resource wars, state fragmentation) require additional spending on health and security. Cost escalation occurs weekly as new damage is documented and inflation erodes purchasing power in conflict-adjacent markets. Funding gap is critical: at $12B pledged, and zero delivery commitments signed, reconstruction cannot begin meaningfully until Q4 2026 or later. This means 18-24 months of further deterioration (rust, looting, environmental hazard migration). Each year of delay adds 5-10% to final reconstruction cost.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            Operation Epic Fury — Humanitarian Impact Dashboard · Day 55 · Week 8 · April 23, 2026
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Deactivate all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+
+            // Activate selected button
+            event.target.classList.add('active');
+        }
+
+        // Chart.js Configuration
+        const chartDefaults = {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#c9d1d9',
+                        font: { size: 12 }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#8b949e', font: { size: 11 } },
+                    grid: { color: '#30363d' }
+                },
+                y: {
+                    ticks: { color: '#8b949e', font: { size: 11 } },
+                    grid: { color: '#30363d' }
+                }
+            }
+        };
+
+        // Casualties Chart
+        const casualtiesCtx = document.getElementById('casualtiesChart').getContext('2d');
+        new Chart(casualtiesCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                datasets: [
+                    {
+                        label: 'Iranian Military',
+                        data: [850, 2100, 3800, 5200, 6100, 6400, 6500, 6550],
+                        backgroundColor: '#f85149'
+                    },
+                    {
+                        label: 'Iranian Civilian',
+                        data: [420, 1350, 2600, 3800, 4400, 4600, 4650, 4680],
+                        backgroundColor: '#d29922'
+                    },
+                    {
+                        label: 'Coalition Military',
+                        data: [12, 28, 45, 58, 65, 68, 69, 70],
+                        backgroundColor: '#58a6ff'
+                    }
+                ]
+            },
+            options: {
+                ...chartDefaults,
+                scales: {
+                    ...chartDefaults.scales,
+                    y: {
+                        ...chartDefaults.scales.y,
+                        beginAtZero: true,
+                        title: { display: true, text: 'Cumulative Deaths' }
+                    }
+                }
+            }
+        });
+
+        // Displacement Chart
+        const displacementCtx = document.getElementById('displacementChart').getContext('2d');
+        new Chart(displacementCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                datasets: [
+                    {
+                        label: 'Internal Displacement (millions)',
+                        data: [1.2, 2.8, 4.5, 5.8, 6.5, 6.8, 7.2, 7.0],
+                        borderColor: '#f85149',
+                        backgroundColor: 'rgba(248, 81, 73, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Cross-border Refugees (millions)',
+                        data: [0.18, 0.42, 0.68, 0.85, 0.95, 1.0, 1.02, 1.05],
+                        borderColor: '#58a6ff',
+                        backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                ...chartDefaults,
+                scales: {
+                    ...chartDefaults.scales,
+                    y: {
+                        ...chartDefaults.scales.y,
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Reconstruction Cost Chart
+        const reconstructionCtx = document.getElementById('reconstructionChart').getContext('2d');
+        new Chart(reconstructionCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                datasets: [
+                    {
+                        label: 'Total Reconstruction Cost ($B)',
+                        data: [85, 180, 310, 420, 490, 520, 550, 580],
+                        borderColor: '#a371f7',
+                        backgroundColor: 'rgba(163, 113, 247, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#a371f7',
+                        pointBorderColor: '#0d1117',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }
+                ]
+            },
+            options: {
+                ...chartDefaults,
+                scales: {
+                    ...chartDefaults.scales,
+                    y: {
+                        ...chartDefaults.scales.y,
+                        beginAtZero: true,
+                        ticks: {
+                            ...chartDefaults.scales.y.ticks,
+                            callback: function(value) { return '$' + value + 'B'; }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
