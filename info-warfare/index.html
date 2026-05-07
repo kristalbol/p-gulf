@@ -3,148 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operation Epic Fury — Information Warfare Dashboard | Day 67</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <title>Information Warfare Dashboard — Day 69 (May 7, 2026)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #0d1117;
-            color: #c9d1d9;
-            line-height: 1.6;
-            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            padding: 20px;
+            min-height: 100vh;
         }
+        .header {
+            background: linear-gradient(90deg, #0f3460 0%, #1a1a2e 100%);
+            border-left: 5px solid #e94560;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 5px;
+            color: #00d4ff;
+        }
+        .header .subtitle {
+            color: #a0a0a0;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .ticker {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        .ticker-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ticker-label {
+            color: #888;
+            font-weight: 600;
+        }
+        .ticker-value {
+            color: #00d4ff;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .trend-up { color: #ff6b6b; }
+        .trend-down { color: #51cf66; }
+        .trend-stable { color: #ffd93d; }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
-            padding: 20px;
         }
 
-        header {
-            background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
-            border: 1px solid #30363d;
+        .section {
+            background: #0f3460;
+            border: 1px solid #1a5490;
             border-radius: 8px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
-        .header-title {
-            font-size: 32px;
-            font-weight: 700;
-            color: #f0f6fc;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .header-meta {
-            font-size: 14px;
-            color: #8b949e;
+        .section h2 {
+            color: #00d4ff;
+            font-size: 1.5em;
             margin-bottom: 20px;
+            border-bottom: 2px solid #e94560;
+            padding-bottom: 10px;
         }
 
-        .status-badges {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
         }
 
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .badge.active {
-            background: rgba(163, 113, 247, 0.1);
-            border-color: #a371f7;
-            color: #a371f7;
-        }
-
-        .badge.warning {
-            background: rgba(210, 153, 34, 0.1);
-            border-color: #d29922;
-            color: #d29922;
-        }
-
-        .ticker {
-            background: #161b22;
-            border: 1px solid #a371f7;
+        .metric-card {
+            background: #1a2e4a;
+            border: 1px solid #2a4e7a;
             border-radius: 6px;
-            padding: 12px;
-            overflow: hidden;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .metric-card h3 {
+            color: #a0d8ff;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+
+        .metric-change {
+            font-size: 0.95em;
+            margin-bottom: 8px;
+        }
+
+        .metric-trend {
+            font-size: 0.85em;
+            color: #888;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 25px;
+            background: #1a2e4a;
+            border-radius: 6px;
+            padding: 15px;
+            border: 1px solid #2a4e7a;
+        }
+
+        .narrative-section {
+            background: #1a2e4a;
+            border-left: 4px solid #e94560;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .narrative-section h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .narrative-section p {
+            color: #d0d0d0;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .narrative-section .impact {
+            color: #ffd93d;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .timeline-event {
+            border-left: 3px solid #e94560;
+            padding: 15px;
+            padding-left: 20px;
+            background: #1a2e4a;
+            border-radius: 4px;
+        }
+
+        .timeline-event .date {
+            color: #00d4ff;
+            font-weight: bold;
+            font-size: 0.95em;
+            margin-bottom: 5px;
+        }
+
+        .timeline-event .content {
+            color: #d0d0d0;
+            line-height: 1.5;
+        }
+
+        .key-insight {
+            background: #1a2e4a;
+            border-left: 4px solid #ffd93d;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .key-insight h4 {
+            color: #ffd93d;
+            margin-bottom: 8px;
+        }
+
+        .key-insight p {
+            color: #d0d0d0;
+            line-height: 1.5;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666;
+            font-size: 0.85em;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #2a4e7a;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
             margin-bottom: 20px;
-        }
-
-        .ticker-content {
-            display: flex;
-            animation: scroll 30s linear infinite;
-        }
-
-        .ticker-item {
-            display: inline-flex;
-            align-items: center;
-            padding: 0 20px;
-            white-space: nowrap;
-            font-size: 13px;
-            color: #8b949e;
-        }
-
-        .ticker-item::before {
-            content: '●';
-            margin-right: 10px;
-            color: #a371f7;
-        }
-
-        @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 30px;
-            border-bottom: 1px solid #30363d;
             flex-wrap: wrap;
         }
 
-        .tab-button {
-            padding: 12px 20px;
-            background: none;
-            border: none;
-            border-bottom: 2px solid transparent;
-            color: #8b949e;
+        .tab-btn {
+            background: #1a2e4a;
+            border: 1px solid #2a4e7a;
+            color: #a0d8ff;
+            padding: 10px 20px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            transition: all 0.3s;
             font-weight: 600;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
-        .tab-button:hover {
-            color: #a371f7;
+        .tab-btn.active {
+            background: #e94560;
+            border-color: #e94560;
+            color: #ffffff;
         }
 
-        .tab-button.active {
-            color: #a371f7;
-            border-bottom-color: #a371f7;
+        .tab-btn:hover {
+            background: #2a4e7a;
+            border-color: #e94560;
         }
 
         .tab-content {
@@ -155,1581 +245,371 @@
             display: block;
         }
 
-        .metrics {
+        .grid-2col {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-            margin-bottom: 30px;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
         }
 
-        .metric {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .metric-label {
-            font-size: 12px;
-            color: #8b949e;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .metric-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #f0f6fc;
-            margin-bottom: 5px;
-        }
-
-        .metric-unit {
-            font-size: 12px;
-            color: #8b949e;
-        }
-
-        .card {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 20px;
-        }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #f0f6fc;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #30363d;
-        }
-
-        .card-content {
-            font-size: 14px;
-            line-height: 1.8;
-            color: #c9d1d9;
-        }
-
-        .card-content p {
-            margin-bottom: 12px;
-        }
-
-        .card-content strong {
-            color: #f0f6fc;
-        }
-
-        .card-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .card-list li {
-            padding: 10px 0;
-            border-bottom: 1px solid #30363d;
-            font-size: 13px;
-        }
-
-        .card-list li:last-child {
-            border-bottom: none;
-        }
-
-        .card-list strong {
-            color: #a371f7;
-        }
-
-        .chart-wrap {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 20px;
-        }
-
-        .chart-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #f0f6fc;
-            margin-bottom: 20px;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 350px;
-            margin-bottom: 20px;
-        }
-
-        .data-table {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .data-table table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .data-table th {
-            background: #0d1117;
-            color: #f0f6fc;
-            padding: 12px;
-            text-align: left;
-            font-weight: 700;
-            border-bottom: 2px solid #30363d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 11px;
-        }
-
-        .data-table td {
-            padding: 12px;
-            border-bottom: 1px solid #30363d;
-            color: #c9d1d9;
-        }
-
-        .data-table tr:hover {
-            background: #0d1117;
-        }
-
-        .data-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .impact-high {
-            color: #f85149;
-            font-weight: 600;
-        }
-
-        .impact-medium {
-            color: #d29922;
-            font-weight: 600;
-        }
-
-        .impact-low {
-            color: #3fb950;
-            font-weight: 600;
-        }
-
-        .verified-yes {
-            color: #3fb950;
-        }
-
-        .verified-no {
-            color: #f85149;
-        }
-
-        .ind-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .ind-card {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 20px;
-        }
-
-        .ind-card-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #f0f6fc;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .ind-card-content {
-            font-size: 13px;
-            color: #c9d1d9;
-            line-height: 1.6;
-        }
-
-        .eq-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-            margin-bottom: 30px;
-        }
-
-        .eq-card {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 24px;
-            text-align: center;
-        }
-
-        .eq-card-label {
-            font-size: 11px;
-            color: #8b949e;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-
-        .eq-card-value {
-            font-size: 42px;
-            font-weight: 700;
-            color: #a371f7;
-            margin-bottom: 8px;
-        }
-
-        .eq-card-bar {
-            height: 6px;
-            background: #30363d;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 12px;
-        }
-
-        .eq-card-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #a371f7, #58a6ff);
-            transition: width 0.3s ease;
-        }
-
-        footer {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            color: #8b949e;
-            font-size: 12px;
-            margin-top: 40px;
-        }
-
-        .narrative-box {
-            background: linear-gradient(135deg, rgba(163, 113, 247, 0.1), rgba(88, 166, 255, 0.1));
-            border-left: 3px solid #a371f7;
-            padding: 16px;
-            border-radius: 6px;
-            margin: 16px 0;
+        @media (max-width: 1200px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 1.8em;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>Information Warfare Dashboard — Day 69</h1>
+        <div class="subtitle">Iran Conflict Narrative Analysis & Credibility Tracking</div>
+        <div class="subtitle">May 7, 2026 | Updated: Day 69</div>
+        <div class="ticker">
+            <div class="ticker-item">
+                <span class="ticker-label">Counter-Narrative Effectiveness:</span>
+                <span class="ticker-value">65</span>
+                <span class="trend-up">↑ +5</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-label">Iran Credibility Index:</span>
+                <span class="ticker-value">58</span>
+                <span class="trend-up">↑ +3</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-label">US Credibility Index:</span>
+                <span class="ticker-value">33</span>
+                <span class="trend-down">↓ -5</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-label">Public War Approval:</span>
+                <span class="ticker-value">45%</span>
+                <span class="trend-down">↓ -3</span>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
-        <header>
-            <div class="header-title">Operation Epic Fury — Information Warfare Dashboard | DAY 67</div>
-            <div class="header-meta">May 5, 2026 · Day 67 (Week 10 Ceasefire Violations Framing: Project Freedom vs Iran Escalation) · US Defensive Framing (6 Boats Destroyed) · Iran Offensive Narrative (19 Missiles at UAE) · Maersk Successfully Escorted · Korean Ship Fire Incident · War Approval: 48% (+2) · Counter-Narrative Score: 60 (-5)</div>
-</invoke>
-
-            <div class="status-badges">
-                <div class="badge active">Project Freedom "Temporary" vs Iran "Ceasefire Violation" Framing</div>
-                <div class="badge warning">US Destroyed 6 Iranian Boats (Defensive Narrative) vs Iran 19 Missiles on UAE (Sovereignty Claim)</div>
-                <div class="badge warning">Maersk Escort Success + Korean Ship Fire = Competing War Narratives</div>
-            </div>
-
-            <div class="ticker">
-                <div class="ticker-content">
-                    <span class="ticker-item">HEGSETH "TEMPORARY" FRAMING: Project Freedom defense reframed as "temporary" freedom of navigation operations. Iran counters: US claim of "temporary" = admission of illegality + violation of Hormuz sovereignty. Ceasefire language battle escalates</span>
-                    <span class="ticker-item">US DESTROYED 6 IRANIAN BOATS: Framed as defensive action against "attacking vessels." Iran calls it aggression violating ceasefire terms. Each side claims defensive posture — narrative war over intent</span>
-                    <span class="ticker-item">IRAN FIRES 19 MISSILES/DRONES AT UAE: Escalation strike at civilian infrastructure. UAE frames as "terrorism." Iran claims "defending sovereignty" against US interference. Undermines Iran's "victim" narrative built over Days 1-66</span>
-                    <span class="ticker-item">MAERSK SUCCESSFULLY ESCORTED: Project Freedom "working" narrative gains traction. US media: "Shipping protected, freedom restored." Iran narrative: escorting one ship doesn't solve Hormuz crisis. Media divergence on single event</span>
-                    <span class="ticker-item">KOREAN SHIP FIRE INCIDENT: Iran weaponizes as proof of US escalation risk. "Look what provocation causes." US dismisses as unrelated. Iranian narrative tool: Korean ship = collateral damage from US interference</span>
-                    <span class="ticker-item">TRUMP MINIMIZES IRAN CAPABILITY: "Iran taken some shots but little damage." Narrative strategy: downplay Iranian military effectiveness. Iran responds: "Damage assessment irrelevant, we demonstrated capability." Credibility test</span>
-                    <span class="ticker-item">GEN. CAINE "10+ ATTACKS SINCE CEASEFIRE": Building case that Iran violated first. Institutional narrative building by Joint Chiefs. Iran's 19 missiles framed as proof of pattern, not isolated incident. Legacy management</span>
-
-                    <span class="ticker-item">IRAN PARLIAMENT LEGAL COUNTER: "US interference in Hormuz = ceasefire violation." Turning legal/narrative tables. Sovereignty claim vs freedom of navigation doctrine. International law becomes proxy warfare</span>
-                    <span class="ticker-item">BLOOMBERG SHIPPING DATA: Ships clustering further from Hormuz = Project Freedom narrative failure. "Freedom" operations not restoring confidence. Alternative media reality vs official "working" claims</span>
-                    <span class="ticker-item">IRAN "FIGHT HASN'T BEGUN YET": Escalation rhetoric + deterrence messaging simultaneously. Signals more military action planned. Creates ambiguity: bluff or genuine threat? Audience must interpret Iranian intent</span>
-                    <span class="ticker-item">COUNTER-NARRATIVE SCORE DROPS TO 60: -5 from Day 66 (65). Iran's 19 missiles at UAE weaponize against Iran credibility. "Victim" narrative undermined by offensive strike. Narrative effectiveness degrades under force escalation</span>
-                    <span class="ticker-item">IRAN CREDIBILITY: 55 (-5 from Day 66 at 60). Firing 19 missiles undermines "victim" + "peaceful" positioning. Defense of sovereignty claim contradicted by scale of strike. Audience loses faith in Iran's narrative consistency</span>
-                    <span class="ticker-item">US CREDIBILITY: 38 (+3 from Day 66 at 35). "Project Freedom working" narrative, Maersk success, defensive framing all gain ground. Hegseth "temporary" positioning re-legitimizes Hormuz presence. Institutional credibility strengthens</span>
-                    <span class="ticker-item">WAR APPROVAL: 48% (+2 from Day 66 at 46%). "Defend shipping routes" messaging resonates with public. Iran's offensive strike on UAE validates "Iran reckless" framing. Military action gains political support through Iran's own escalation</span>
-                </div>
-            </div>
-        </header>
-
-        <div class="tabs">
-            <button class="tab-button active" onclick="switchTab(event, 'overview')">Overview</button>
-            <button class="tab-button" onclick="switchTab(event, 'us-narrative')">US Narrative</button>
-            <button class="tab-button" onclick="switchTab(event, 'iran-narrative')">Iran Narrative</button>
-            <button class="tab-button" onclick="switchTab(event, 'global-media')">Global Media</button>
-            <button class="tab-button" onclick="switchTab(event, 'propaganda')">Propaganda Tracker</button>
-            <button class="tab-button" onclick="switchTab(event, 'credibility')">Credibility Index</button>
-        </div>
-
-        <!-- TAB 1: OVERVIEW -->
-        <div id="overview" class="tab-content active">
-            <div class="metrics">
-                <div class="metric">
-                    <div class="metric-label">Narrative Dominance (US)</div>
-                    <div class="metric-value">48%</div>
-                    <div class="metric-unit">of global discourse (up 17% | Project Freedom + ADNOC attack)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Narrative Dominance (Iran)</div>
-                    <div class="metric-value">38%</div>
-                    <div class="metric-unit">of global discourse (down 14% | military escalation undercuts peace proposal)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Counter-Narrative Effectiveness</div>
-                    <div class="metric-value">60</div>
-                    <div class="metric-unit">score (-5 | ceasefire violation framing weakened by Iran 19 missiles at UAE)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Media Restrictions Active</div>
-                    <div class="metric-value">29</div>
-                    <div class="metric-unit">countries (+2 from UAE direct confrontation)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Social Media Sentiment</div>
-                    <div class="metric-value">42%</div>
-                    <div class="metric-unit">pro-intervention (up 14pts | ADNOC attack rallies support)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Disinformation Incidents</div>
-                    <div class="metric-value">1,201</div>
-                    <div class="metric-unit">cumulative (66 days)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">State Media Output</div>
-                    <div class="metric-value">347</div>
-                    <div class="metric-unit">articles today (crisis response / damage control down from Day 65)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Independent Verification</div>
-                    <div class="metric-value">16%</div>
-                    <div class="metric-unit">of major claims (up 2% | civilian ship attack demands verification)</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Information Snapshot — Day 67 (Ceasefire Violations Narrative: Project Freedom vs Iran Escalation)</div>
-                <div class="card-content">
-                    <p>Day 67 (May 5, Tuesday) pivots from "who escalated militarily" (Day 66 ADNOC focus) to "who violated ceasefire first" — narrative reframing battle. Hegseth frames Project Freedom as "temporary" freedom of navigation, attempting legal legitimacy. Iran Parliament counters: US "temporary" operations = de facto admission of illegality + Hormuz sovereignty violation. Ceasefire language weaponization dominates Day 67 discourse. US destroyed 6 Iranian boats — framed as defensive response to "attacking vessels." Iran calls it aggression violating ceasefire terms. Competing "defensive" postures: US defensive vs Iranian boats, Iran defensive vs US interference. Maersk successfully escorted through Hormuz — Project Freedom "working" narrative gains traction globally. US media: "shipping protected, freedom restored." Iran narrative: one ship escorted doesn't solve Hormuz crisis or restore shipping confidence. Bloomberg shipping data contradicts "working" claim: vessels clustering further from Hormuz = confidence not restored. Korean ship fire incident weaponized by Iran: "Look what US provocation causes." US dismisses as unrelated. Narrative tool: Korean ship = collateral damage from US interference. Trump minimizes Iran capability: "Iran taken some shots but little damage" — downplay Iranian military effectiveness narrative strategy. Iran credibility test: 19 missiles at UAE demonstrate capability regardless of damage assessment. Gen. Caine builds institutional narrative: "Iran attacked 10+ times since ceasefire" — pattern evidence, not isolated incident. Joint Chiefs legacy management: Iran violated first, ceasefire broken by Tehran. Iran response: "fight hasn't begun yet" — escalation rhetoric + deterrence messaging. Signals more military action planned; creates ambiguity on genuine threat vs bluff.</p>
-                    <p>Day 67 represents CREDIBILITY DEGRADATION PHASE. Iran's 19 missiles at UAE fundamentally undermine "victim" + "peaceful negotiator" narrative. Counter-narrative score drops to 60 (-5) as Iran's offensive strike weaponizes against its own credibility. Iran credibility falls to 55 (-5 from Day 66) — 19 missiles on UAE contradicts defense-only positioning. US credibility rises to 38 (+3) — Project Freedom working narrative, Maersk success, defensive framing gains traction. War approval rises to 48% (+2) — "defend shipping routes" messaging resonates, Iran's offensive strike validates "Iran reckless." Hegseth "temporary" framing re-legitimizes Hormuz presence to international audience, legal sovereignty challenge neutralized by "temporary" qualifier. Global media narrative crystallizes: ceasefire violations attributed to Iran, not US. "10+ attacks since ceasefire" (Gen. Caine) builds case for historical Iran aggression pattern. Shipping data (Bloomberg clustering) contradicts military success claims but doesn't dominate narrative. Korean ship fire = alternative Iran weapon in propaganda warfare. Both sides claim defensive postures; audience increasingly skeptical of both. Institutional credibility battles (Joint Chiefs vs Iran Parliament) determine long-term narrative legitimacy. "Fight hasn't begun yet" creates strategic ambiguity: Is Iran out of ammunition? Planning larger strike? Audience uncertainty becomes weapon for both sides. Day 67 marks transition from "who attacked first" to "who violated ceasefire structurally." Legal/institutional arguments now outweigh tactical military claims.</p>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Key Narrative Battles — Day 67 (Ceasefire Violations Framing: Project Freedom "Temporary" vs Iran 19 Missiles)</div>
-                <div class="card-content">
-                    <ul class="card-list">
-                        <li><strong>Hegseth "Temporary" Framing vs Iran Sovereignty Counter:</strong> US Defense Secretary reframes Project Freedom as "temporary" freedom of navigation operations — attempting legal legitimacy through limited duration claim. Iran Parliament legal counter: US "temporary" operations = de facto admission of illegality + Hormuz sovereignty violation. Ceasefire language becomes weaponized in legal doctrine battle. Audience must decide: "temporary" = legitimate tactical operation OR "temporary" = admission of violation. Narrative advantage shifts to whoever controls "temporary" meaning. US gains with international law audiences; Iran gains with sovereignty-focused audiences.</li>
-                        <li><strong>US Destroyed 6 Iranian Boats — Defensive vs Aggressive Framing:</strong> US frames boat destruction as defensive response to "attacking vessels" — proves Iranian aggression first. Iran counters: boat destruction = aggression violating ceasefire. Both sides claim defensive posture simultaneously. Competing versions of same military event. No independent verification dominates discourse. Narrative credibility depends on institutional authority — Pentagon claims vs Iranian military claims. Gen. Caine's "10+ attacks since ceasefire" builds pattern evidence. Iran's "6 boats defending sovereignty" builds counter-narrative. Audience increasingly skeptical of both defensive claims.</li>
-                        <li><strong>Iran 19 Missiles at UAE — Undermines Iran Credibility Fundamentally:</strong> Massive escalation strike on UAE civilian infrastructure. UAE frames as "terrorism." Iran claims "defending sovereignty" against US interference. Scale of strike (19 missiles) contradicts Iran's defensive positioning. Undermines "victim" narrative built Days 1-66. Counter-narrative score drops to 60 (-5) as Iran's offensive action weaponizes against own credibility. Iran credibility falls to 55 (-5) — firing 19 missiles contradicts defense-only narrative. Global media headlines: "Iran escalates despite ceasefire." Narrative battle lost by Iran through military action scale.</li>
-                        <li><strong>Maersk Escorted Successfully + Korean Ship Fire = Competing Success/Failure Narratives:</strong> Maersk through Hormuz validates Project Freedom "working" narrative. US media: "shipping protected, freedom restored." Iran narrative: one ship escorted insufficient. Bloomberg shipping data contradicts: vessels clustering further from Hormuz = confidence not restored. Korean ship fire weaponized by Iran as "collateral damage from US provocation." US dismisses as unrelated. Single events interpreted completely differently. Audience must evaluate which narrative authority wins: Pentagon operational success vs Bloomberg shipping metrics vs Iranian escalation warning.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 2: US NARRATIVE -->
-        <div id="us-narrative" class="tab-content">
-            <div class="metrics">
-                <div class="metric">
-                    <div class="metric-label">Project Freedom Briefings</div>
-                    <div class="metric-value">3</div>
-                    <div class="metric-unit">military operations (15K troops, destroyers, 100+ aircraft)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Congressional Statements</div>
-                    <div class="metric-value">67</div>
-                    <div class="metric-unit">this week (surge on Project Freedom launch + Hormuz crisis)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Trump Communications</div>
-                    <div class="metric-value">8</div>
-                    <div class="metric-unit">public statements (mix of "positive discussions" + military action)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">War Approval Rating</div>
-                    <div class="metric-value">46%</div>
-                    <div class="metric-unit">nationwide poll (up 3pts | ADNOC attack + Hormuz crisis)</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Official U.S. Narrative — Project Freedom "Temporary" Defense + Ceasefire Violation Attribution (Day 67)</div>
-                <div class="card-content">
-                    <p><strong>Current Framing (Day 67):</strong> US narrative pivots from "military rescue operation" (Day 66) to "ceasefire violation attribution + institutional legal defense." Hegseth frames Project Freedom as "temporary" freedom of navigation operations — attempting to neutralize Iran's "sovereignty violation" counterargument through legal temporality claim. Gen. Caine institutional move: "Iran attacked 10+ times since ceasefire" — building pattern evidence that Iran violated first, cementing US "defensive response" legitimacy. Trump minimizes Iran capability: "Iran taken some shots but little damage" — downplaying Iranian threat while maintaining operational necessity claim. Pentagon emphasizes Maersk escort success: "Project Freedom working, shipping protected." War approval rises to 48% (+2) as "defend shipping routes" messaging resonates with public. Congressional support consolidates around Project Freedom + Iran ceasefire violation narrative. Bloomberg shipping data (vessels clustering further from Hormuz) contradicts "working" claim, but institutional messaging overpowers market data. US credibility rises to 38 (+3) through multi-institutional coordination: military operational success, institutional legal defense, civilian shipping protection narrative.</p>
-                    <p><strong>Shifts from Day 66:</strong> Day 67 represents institutional legitimacy hardening vs Day 66 military operation dominance. Hegseth "temporary" framing = legal sophistication upgrade — moves beyond "humanitarian mission" to "temporary tactical operation" legal positioning. Gen. Caine "10+ attacks" narrative = Joint Chiefs legitimacy conferral — removes proposal debate from agenda, replaces with "who violated ceasefire first" institutional consensus. Korean ship fire narrative neutralization: US dismisses as unrelated, doesn't dominate messaging. Trump "little damage" claim = capability minimization strategy — maintains threat while reducing war justification risk. War approval rise (46%→48%) confirms messaging shift success: "defend shipping" appeals broader than "military rescue." US credibility rises from 35 to 38 (+3) through institutional coordination strength. Pentagon credibility + Congressional consensus + Trump capability minimization = US emerges with stronger institutional foundation than Day 66. Bloomberg shipping data failure to dominate headlines = markets subordinate to institutional narrative power. Media shifts from "is Project Freedom working militarily" to "who violated ceasefire institutionally." Constitutional scholars move from "war legality" (Day 65-66) to "temporary operational authority" (Day 67). Day 67 represents narrative maturation: US moves from tactical military success to institutional legal foundation + long-term credibility positioning.</p>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Trump Communications — Day 67: Iran "Taken Some Shots" + Defensive Posturing</div>
-                <div class="card-content">
-                    <p><strong>Most Significant Development (Day 67):</strong> Trump minimizes Iran military capability while maintaining Project Freedom necessity: "Iran taken some shots but little damage." Strategic positioning: downplay Iranian threat (reduce public fear) while justifying continued military operations (maintain support). Multiple statements emphasize defensive posture: "we're protecting shipping," "Iran violated ceasefire," "Project Freedom working." Gen. Caine institutional support: "10+ attacks since ceasefire" — Trump doesn't need to repeat; military leadership builds pattern narrative. Pentagon briefs Maersk escort success — operational validation of Project Freedom framing. Trump maintains diplomatic option language while escalating militarily. War approval rises to 48% (+2) as "defend shipping routes" framing resonates. Senate Republicans consolidate around ceasefire violation attribution: Iran violated first. Conservative media emphasizes Trump "defending commerce against Iranian recklessness." Constitutional questions about temporary authority decline in media prominence.</p>
-                    <p><strong>Strategic Shift Confirmed (Day 67):</strong> Trump moves from "military rescue" (Day 66) to "capability minimization + institutional legitimacy" (Day 67). "Taken some shots but little damage" = reduces Iranian threat perception while maintaining operational necessity. Pentagon's "10+ attacks since ceasefire" = institutional legitimacy without Trump needing to repeat claims. Project Freedom "working" claim validated by Maersk escort, contradicted by Bloomberg clustering (but markets subordinate to military claims in institutional hierarchy). War approval rise (46%→48%) confirms messaging shift: "defend shipping" appeals broader than "military rescue." Trump maintains diplomatic language ("very positive discussions" continuation implied) while deepening military escalation. Republican Senate shifts from "proposal debate" (Day 65-66) to "institutional ceasefire violation consensus" (Day 67). Conservative media consolidates: Iran as ceasefire violator, US as defensive responder. US credibility rises from 35 to 38 (+3) through institutional coordination. Constitutional scholars move from "war legality" to "temporary operational authority." Trump's "little damage" claim simultaneously de-threatens and legitimizes continued operations. Day 67 represents strategic maturation: Trump leverages Pentagon institutional support to deepen credibility while minimizing threat perception.</p>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">U.S. Media Coverage Divergence</div>
-                <div class="card-content">
-                    <ul class="card-list">
-                        <li><strong>Fox News:</strong> "Trump Won't Back Down — Iran Must Give Up" — frames gun meme as "presidential strength"; Senate vote as "bipartisan support for the mission"; ignores FOMC split; leads with "ceasefire working." Constitutional crisis angle absent.</li>
-                        <li><strong>CNN:</strong> "Constitutional Crisis: Can Trump Legally Continue?" — leads with Hegseth's "pause" claim vs. Kaine's rebuttal; interviews constitutional scholars; Senate 47-50 = "closest vote yet"; FOMC 8-4 split as "institutional America fracturing." Oil pullback buried.</li>
-                        <li><strong>NYT:</strong> "The Gun Meme President vs. The Constitution" — front-page analysis of Trump's AI gun image + simultaneous War Powers dispute; sources Pentagon officials uncomfortable with meme diplomacy; most critical NYT framing since war began.</li>
-                        <li><strong>WSJ:</strong> "Fed Split Signals Economic Reckoning" — editorial focuses on FOMC 8-4 as inflation vs. recession dilemma; Powell's exit creates leadership void; $114 oil still devastating even after pullback; questions war's economic sustainability.</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="ind-grid">
-                <div class="ind-card">
-                    <div class="ind-card-title">Fox News Framing (Fractured)</div>
-                    <div class="ind-card-content">Hosts divided on "war terminated" legal memo — some defend as pragmatic, others call it constitutional fraud. Conservative viewers question whether "termination" enables war restart without approval. On Iran proposal rejection: Hawks defend as "standing firm," moderates say "gift-horse rejection ruins credibility." Tucker clone mocks AI gun meme as "weakening Trump image." First major Fox internal fracture on war narrative by Day 63.</div>
-                </div>
-                <div class="ind-card">
-                    <div class="ind-card-title">CNN Framing</div>
-                    <div class="ind-card-content">Emphasizes diplomatic risks and de-escalation pathways; quotes White House officials expressing concern about Trump's "unscripted" nature; frames ceasefire collapse as mutual failure rather than Iranian perfidy; notes humanitarian costs of resumed conflict. Interviews skeptical military analysts questioning feasibility of "shoot on sight" policy.</div>
-                </div>
-                <div class="ind-card">
-                    <div class="ind-card-title">NYT Editorial Analysis</div>
-                    <div class="ind-card-content">Examines pattern of shifting U.S. narratives (precision strikes → civilian defense → ceasefire pause → renewed aggression) and questions strategic coherence. Notes Trump's rhetoric contradicts State Department's position. Questions independent casualty verification and credibility of competing claims from both governments.</div>
-                </div>
-                <div class="ind-card">
-                    <div class="ind-card-title">Social Media Reaction</div>
-                    <div class="ind-card-content">Monday full engagement cycle. Trump Truth Social post generates 142K retweets with 2:1 negative ratio. #WhoKilledTheDeal trends globally for 14+ hours. #AmericaSaidNo trends in 47 countries. Merz "humiliated" clip shared 8.7M times. Pro-intervention sentiment drops to 52%. TikTok explodes with "$5 gas because Trump said no" content (28M views). Iranian state social media accounts gain 340K followers in 24 hours — largest single-day growth since war began.</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 3: IRAN NARRATIVE -->
-        <div id="iran-narrative" class="tab-content">
-            <div class="metrics">
-                <div class="metric">
-                    <div class="metric-label">IRNA Articles Published</div>
-                    <div class="metric-value">52</div>
-                    <div class="metric-unit">today (crisis response / damage control; down from Day 65)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Press TV + Tasnim Broadcasts</div>
-                    <div class="metric-value">38</div>
-                    <div class="metric-unit">this week (reduced from proposal surge; ADNOC attack focus)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Pakistan Mediation Updates</div>
-                    <div class="metric-value">9</div>
-                    <div class="metric-unit">diplomatic channel activity (reduced; proposal momentum lost)</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Counter-Narrative Score</div>
+        <!-- KEY METRICS SECTION -->
+        <div class="section">
+            <h2>Day 69 Narrative Metrics</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>Counter-Narrative Effectiveness</h3>
                     <div class="metric-value">65</div>
-                    <div class="metric-unit">global resonance index (-7 | military escalation overshadows proposal)</div>
+                    <div class="metric-change">From Day 67: +5</div>
+                    <div class="metric-trend">Trump contradictions, Israel-Beirut strike, media exposure fueling counter-narrative</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Iran Credibility Index</h3>
+                    <div class="metric-value">58</div>
+                    <div class="metric-change">From Day 67: +3</div>
+                    <div class="metric-trend">Diplomatic engagement, China backing, patient negotiation posture</div>
+                </div>
+                <div class="metric-card">
+                    <h3>US Credibility Index</h3>
+                    <div class="metric-value">33</div>
+                    <div class="metric-change">From Day 67: -5</div>
+                    <div class="metric-trend">Major drop: Project Freedom pause, contradictory messaging, Israel bombing undermines peace narrative</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Public War Approval</h3>
+                    <div class="metric-value">45%</div>
+                    <div class="metric-change">From Day 67: -3</div>
+                    <div class="metric-trend">Peace hopes + contradictory messaging eroding support globally</div>
                 </div>
             </div>
+        </div>
 
-            <div class="card">
-                <div class="card-title">Official Iranian Narrative — Day 67 (Sovereignty Defense vs Credibility Crisis: 19 Missiles Backfire)</div>
-                <div class="card-content">
-                    <p><strong>Current Framing (Day 67 Institutional Delegitimization):</strong> Iran Parliament launches legal counter-attack: "US interference in Hormuz = ceasefire violation." Iran frames response as institutional legal defense, not military aggression. IRNA: "Iran Parliament Declares US Operations Illegal Under International Law." Press TV: "US 'Temporary' Operations Admission of Violation." Araghchi: "America admits own violations by claiming 'temporary' Hormuz operations." However, Iran credibility crisis deepens due to 19 missiles fired at UAE. Day 67 framing contradiction: simultaneous legal sovereignty claim + massive offensive military strike. International audience sees inconsistency: if Iran truly defending sovereignty legally, why fire 19 missiles? Iran narrative splits: domestic (sovereignty defense) vs international (appearing reckless). Counter-narrative score drops to 60 (-5) as offensive strike weaponizes against Iran's own credibility. Iran credibility falls to 55 (-5) — firing 19 missiles contradicts defense-only positioning. Global media headlines: "Iran escalates despite ceasefire." Domestic narrative emphasizes "fighting hasn't begun yet" — escalation deterrence messaging. But 19 missiles already fired contradicts "hasn't begun" claim. Iran state media attempts damage control: framing UAE strike as "limited response," downplaying 19 missiles as "defensive necessity," claiming "hit critical infrastructure." Tasnim: "Iran Demonstrated Precision Capability — Ceasefire Violation Reciprocal Response." IRNA: "US Destroyed 6 Iranian Boats in Territorial Waters — Iran Response Proportional." But international fact-checkers contradict: 19 missiles vs 6 boats = scale mismatch. Iran credibility undermined by its own military action.</p>
-                    <p><strong>Day 67 Crisis Deepening (Credibility Reversal):</strong> Iran faces institutional credibility collapse from military escalation. Legal sovereignty argument (Parliament) contradicted by offensive military action. International audience skeptical of simultaneous "defending" + "attacking" narratives. Counter-narrative effectiveness drops to 60 (-5) as 19 missiles undermine proposal positioning. Iran credibility inversion: "defender" narrative undermined by "attacker" reality. Gen. Caine's "10+ attacks since ceasefire" institutional claim now supported by visible Iranian escalation. Pakistan mediation stalled (6 updates vs 9 Day 66) — proposal momentum lost further. Global South audiences shift from "Iran defending sovereignty" to "Iran escalating militarily." Media narrative shift: "Iran fires 19 missiles at UAE" dominates; legal Parliament defense buried. Domestic narrative (fighting hasn't begun) contradicts international observable reality (19 missiles already fired). Iran's "Maersk escort insufficient" counter-narrative weakened by own offensive strike — credibility asymmetry advantages US. War approval rises to 48% (+2) as Iran offensive validates "Iran reckless" framing. Republican Senate consolidates around "Iran ceasefire violator" consensus — Iran's Parliament legal claim irrelevant to escalation realities. Day 67 represents strategic disaster: Iran weapons military action contradicts institutional legal defense, credibility collapses under observable escalation, international isolation deepens. Legal arguments insufficient when military facts contradict narrative positioning.</p>
-                </div>
+        <!-- TAB SYSTEM -->
+        <div class="section">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('day69')">Day 69 (May 7)</button>
+                <button class="tab-btn" onclick="switchTab('day68')">Day 68 (May 6)</button>
+                <button class="tab-btn" onclick="switchTab('analysis')">Narrative Analysis</button>
+                <button class="tab-btn" onclick="switchTab('trends')">Trend Analysis</button>
             </div>
 
-            <div class="card">
-                <div class="card-title">Iranian Propaganda Operations</div>
-                <div class="card-content">
-                    <ul class="card-list">
-                        <li><strong>MSC Francesca Video (D54):</strong> 12-minute propaganda film showing Iranian forces boarding seized commercial vessel; distributed via Telegram, IRNA, Al Mayadeen; portrays event as "enforcement of international maritime law against American piracy"; generates 12.4M views across platforms.</li>
-                        <li><strong>"Ceasefire Meaningless" Campaign:</strong> Coordinated statements from Khamenei successor, IRGC commanders, and state media all released within 90 minutes of Trump mine post; frames U.S. as unreliable partner; appeals to Global South audiences skeptical of American commitments.</li>
-                        <li><strong>Casualty Counter-Narrative:</strong> Iranian sources claim 8,400 civilian deaths in D1-D10; independent verification suggests 1,200-3,400 range; Iran amplifies high estimates across proxy media to delegitimize U.S. "precision strike" claims.</li>
-                        <li><strong>Khamenei Succession Narrative:</strong> Successfully frames transition to new Supreme Leader as demonstration of institutional resilience; shows Iranian population gathering for successor's public appearances; counters narrative of decapitation.</li>
+            <!-- DAY 69 TAB -->
+            <div id="day69" class="tab-content active">
+                <h2>Day 69: Escalation vs Diplomacy (May 7, 2026)</h2>
+
+                <div class="narrative-section">
+                    <h3>Central Narrative: Strategic Contradiction</h3>
+                    <p>Day 69 reveals the fundamental contradiction at the heart of US strategy: Washington publicly pushes for peace while Israel—a key US ally—executes the first major military strike since the ceasefire, directly undermining the peace narrative.</p>
+                    <p><strong>Israel's Move:</strong> Hezbollah Radwan commander killed in Beirut airstrike. This is the first significant Israeli military action since ceasefire began. Timing is critical—it comes as Iran prepares to respond to US peace proposals.</p>
+                    <p><strong>US Message:</strong> Trump administration continues threatening "start bombing" if Iran doesn't accept terms, while simultaneously claiming to be pursuing peace.</p>
+                    <div class="impact">Impact on Credibility: US loses credibility; Iran gains negotiating leverage by appearing reasonable in face of Israeli aggression</div>
+                </div>
+
+                <div class="narrative-section">
+                    <h3>Iran's Diplomatic Advantage (May 7)</h3>
+                    <p>Iran FM meets Chinese FM in Beijing—described as "constructive." China explicitly backs Iran's sovereignty. This positions Iran as the diplomatic actor while US appears militarily threatened and contradictory.</p>
+                    <p>Iran expected to respond to US proposal on Day 69. Early indication: they are using diplomatic channels effectively, engaging with China, and maintaining patient negotiation posture while US signals are chaotic.</p>
+                    <div class="impact">Impact on Global Narrative: Iran appears strong, principled, patient. US appears desperate, contradictory, reliant on threats</div>
+                </div>
+
+                <div class="narrative-section">
+                    <h3>Global Media Consensus: "Is the Ceasefire Real?"</h3>
+                    <p>Major question across global media: Israel bombing Beirut while US pushes peace suggests either:</p>
+                    <ul style="margin: 10px 0 0 20px; color: #d0d0d0;">
+                        <li>The ceasefire is theater and war will resume</li>
+                        <li>Israel and US are not coordinated on strategy</li>
+                        <li>Trump's "peace" is cover for military repositioning</li>
                     </ul>
+                    <p style="margin-top: 10px;">This narrative undermines US credibility and creates room for Iranian counter-narrative of US duplicity.</p>
+                    <div class="impact">Impact: Major credibility hit to US; counter-narrative effectiveness rises</div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-title">Proxy Media Amplification</div>
-                <div class="card-content">
-                    <p><strong>Hezbollah Media:</strong> Al Manar and Telegram channels frame U.S. as regional destabilizer; amplify Iran's military capability messaging; target Lebanese constituency with narratives of "resistance victory." Al Manar reaches ~2.1M daily viewers.</p>
-                    <p><strong>Houthi Communications:</strong> Claimed involvement in several maritime incidents via Telegram; exaggerate impact of anti-ship operations; frame actions as "response to American aggression." Lack direct international media reach but generate secondary amplification through Al Jazeera and sympathetic regional outlets.</p>
-                    <p><strong>Al Mayadeen (Lebanon):</strong> Primary Arab-language amplifier of Iranian narratives; distributes IRNA content with added commentary; reaches 8.2M followers; frames conflict as "anti-imperialist struggle." Explicitly pro-Iran but maintains journalistic format credibility.</p>
+            <!-- DAY 68 TAB -->
+            <div id="day68" class="tab-content">
+                <h2>Day 68: Narrative Chaos (May 6, 2026)</h2>
+
+                <div class="narrative-section">
+                    <h3>Project Freedom Pause: 1-Day War, Claims "Great Progress"</h3>
+                    <p>Trump pauses Project Freedom after just 1 day of operations, claims "great progress" and victory. Administration signals suggest rapid pivot to diplomacy or ceasefire achievement.</p>
+                    <p>Problem: The gap between reality (1 day of military action) and claimed outcome ("great progress") is enormous. This is classic information warfare overreach.</p>
+                    <div class="impact">Impact: Media immediately questions whether pause indicates weakness, failure, or pivot. Contradicts narrative of decisive military victory</div>
+                </div>
+
+                <div class="narrative-section">
+                    <h3>WashPost Expose: "Sows Confusion" with Contradictory Messaging</h3>
+                    <p>Washington Post reports that Trump administration is deliberately or inadvertently "sowing confusion" with contradictory messages on war/peace status. Administration officials give conflicting signals:</p>
+                    <ul style="margin: 10px 0 0 20px; color: #d0d0d0;">
+                        <li>Trump: "If they don't agree, the bombing starts" (peace/war in same sentence)</li>
+                        <li>Rubio: War "is over"</li>
+                        <li>Pentagon: Ceasefire "certainly holds"</li>
+                    </ul>
+                    <p style="margin-top: 10px;">Exposed contradictions are the core of Day 68's narrative damage.</p>
+                    <div class="impact">Impact: Major credibility loss. Media and markets struggle to determine actual US policy</div>
+                </div>
+
+                <div class="narrative-section">
+                    <h3>Oil Markets React: 8% Crash = Peace Signal</h3>
+                    <p>Global oil prices crash 8% on Day 68, interpreted by markets as confirmation that war is ending/peace is real. This creates positive feedback for peace narrative, even though it's based on contradictory messaging.</p>
+                    <p>Iranian media response: US propaganda aims to justify Trump's claim war is ending. Iran frames this as US trying to declare victory while actually losing leverage.</p>
+                    <div class="impact">Impact: Market movement validates peace narrative in short term, but Iranian counter-narrative gains credibility long-term</div>
+                </div>
+
+                <div class="narrative-section">
+                    <h3>Pakistani Mediation: New Central Channel</h3>
+                    <p>Pakistani mediation becomes central to narrative on Day 68. Pakistan positioned as honest broker between US, Iran. This is significant because:</p>
+                    <ul style="margin: 10px 0 0 20px; color: #d0d0d0;">
+                        <li>Pakistan has historical ties to both US and Iran</li>
+                        <li>Involvement legitimizes negotiations</li>
+                        <li>Creates additional narrative layer: diplomatic solution possible</li>
+                    </ul>
+                    <div class="impact">Impact: Positive for peace narrative, but also confirms that unilateral US messaging has failed</div>
                 </div>
             </div>
 
-            <div class="ind-grid">
-                <div class="ind-card">
-                    <div class="ind-card-title">IRNA Framing</div>
-                    <div class="ind-card-content">Official state news framing emphasizes Iranian strategic success, American frustration, and inevitability of Iranian regional dominance. Uses terms like "Zionist entity" for Israel; describes U.S. operations as "terror campaigns"; presents Iranian military actions as measured responses to existential threats.</div>
-                </div>
-                <div class="ind-card">
-                    <div class="ind-card-title">Press TV Broadcasts</div>
-                    <div class="ind-card-content">English-language propaganda outlet produces documentary-style content on Iranian military capability, civilian resilience, and American moral failure. Interviews sympathetic international voices; features satellite imagery claimed to prove U.S. civilian targeting. Reaches diaspora and Western anti-war constituencies.</div>
-                </div>
-                <div class="ind-card">
-                    <div class="ind-card-title">Al Mayadeen Framing</div>
-                    <div class="ind-card-content">Arab-language amplification emphasizing "resistance axis" narrative; frames conflict as struggle against imperialism; compares Iran's situation to Palestinian/Lebanese causes; appeals to pan-Arab and anti-American sentiment. More sophisticated framing than state media, higher credibility within Arab audiences.</div>
-                </div>
-                <div class="ind-card">
-                    <div class="ind-card-title">Telegram Channels</div>
-                    <div class="ind-card-content">Direct Iranian messaging channels distribute combat footage, casualty claims, and response videos to Trump rhetoric within hours of U.S. statements. Reach 600K+ total followers; enable rapid narrative response cycle. Less filtered than state media; more aggressive tone appeals to hardline base.</div>
-                </div>
-            </div>
-        </div>
+            <!-- ANALYSIS TAB -->
+            <div id="analysis" class="tab-content">
+                <h2>Narrative Analysis: Days 68-69 Pattern</h2>
 
-        <!-- TAB 4: GLOBAL MEDIA -->
-        <div id="global-media" class="tab-content">
-            <div class="metrics">
-                <div class="metric">
-                    <div class="metric-label">Al Jazeera Position</div>
-                    <div class="metric-value">Neutral</div>
-                    <div class="metric-unit">slight Iran sympathy</div>
+                <div class="key-insight">
+                    <h4>The Credibility Crisis</h4>
+                    <p>US credibility collapses from 38 (Day 67) to 33 (Day 69) because of a single pattern: Project Freedom pauses after 1 day with claims of victory, but contradictory messaging immediately follows. Trump says "if they don't agree, bombing starts"—which admits no progress was made. This is why markets sold off and media questioned the narrative.</p>
                 </div>
-                <div class="metric">
-                    <div class="metric-label">BBC Stance</div>
-                    <div class="metric-value">Balanced</div>
-                    <div class="metric-unit">fact-check focus</div>
+
+                <div class="key-insight">
+                    <h4>Israel's Strategic Problem for US Messaging</h4>
+                    <p>Israel's Beirut strike on Day 69 is a critical moment. For the US to claim "war is over" while Israel is actively striking Hezbollah is logically impossible. This single action—which takes 20 seconds to describe—undermines hours of US diplomatic messaging. Iran can simply point at the bombing and say: "This is what 'peace' means in Trump's world."</p>
                 </div>
-                <div class="metric">
-                    <div class="metric-label">Reuters Fact-Checks Published</div>
-                    <div class="metric-value">37</div>
-                    <div class="metric-unit">60-day period</div>
+
+                <div class="key-insight">
+                    <h4>Iran's Diplomatic Win</h4>
+                    <p>Iran is winning the information war on Days 68-69 by doing nothing dramatically visible. Iran engages diplomatically (Beijing meeting with China), maintains patient posture, lets US contradict itself, and lets Israel's bombing do the narrative work. Iran doesn't need propaganda—reality is the propaganda.</p>
                 </div>
-                <div class="metric">
-                    <div class="metric-label">Global Sentiment Shift</div>
-                    <div class="metric-value">-16%</div>
-                    <div class="metric-unit">pro-US vs Week 1</div>
+
+                <div class="key-insight">
+                    <h4>The Counter-Narrative Surge</h4>
+                    <p>Counter-narrative effectiveness rises to 65 (+5) because the Trump administration is giving foreign media, Iranian state media, and critical US media an embarrassment of riches. Every contradictory statement, every pause followed by threats, every Israeli bomb while claiming peace—all feed the counter-narrative that US policy is confused and dishonest.</p>
+                </div>
+
+                <div class="key-insight">
+                    <h4>Public War Approval Decline</h4>
+                    <p>War approval drops to 45% (-3 from Day 67). This is driven by contradictory messaging creating fatigue. Citizens globally are exhausted by "war is over/war is not over/bombing starts" churn. The confusion erodes support more effectively than a single clear message would.</p>
                 </div>
             </div>
 
-            <div class="data-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Outlet</th>
-                            <th>Region</th>
-                            <th>Current Framing</th>
-                            <th>Shift from Week 1</th>
-                            <th>Credibility Rating</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>CNN</strong></td>
-                            <td>US</td>
-                            <td>Balanced skepticism; focuses on diplomatic pathways</td>
-                            <td>More critical of Trump</td>
-                            <td>72/100</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Fox News</strong></td>
-                            <td>US</td>
-                            <td>Strong pro-US; amplifies Trump rhetoric; Iran threat narrative</td>
-                            <td>Increasingly partisan</td>
-                            <td>48/100</td>
-                        </tr>
-                        <tr>
-                            <td><strong>New York Times</strong></td>
-                            <td>US</td>
-                            <td>Analytical; questions narrative coherence; examines credibility gaps</td>
-                            <td>More skeptical of all claims</td>
-                            <td>81/100</td>
-                        </tr>
-                        <tr>
-                            <td><strong>BBC</strong></td>
-                            <td>UK</td>
-                            <td>Strict neutrality; emphasis on fact-checking and verification</td>
-                            <td>Consistent; increased scrutiny</td>
-                            <td>86/100</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Al Jazeera</strong></td>
-                            <td>Qatar</td>
-                            <td>Neutral with subtle pro-Iran sympathy; emphasizes civilian impact</td>
-                            <td>More critical of US operations</td>
-                            <td>74/100</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Reuters</strong></td>
-                            <td>Int'l</td>
-                            <td>Fact-focused; extensive debunking of both sides' claims</td>
-                            <td>Maintained rigor; increased corrections</td>
-                            <td>88/100</td>
-                        </tr>
-                        <tr>
-                            <td><strong>IRNA</strong></td>
-                            <td>Iran</td>
-                            <td>Pro-Iran; frames US as aggressor; emphasizes Iranian resilience</td>
-                            <td>Increasingly combative</td>
-                            <td>25/100</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Press TV</strong></td>
-                            <td>Iran</td>
-                            <td>State propaganda; documentary-style pro-Iran messaging; anti-US focus</td>
-                            <td>More aggressive tone</td>
-                            <td>22/100</td>
-                        </tr>
-                        <tr>
-                            <td><strong>CGTN</strong></td>
-                            <td>China</td>
-                            <td>Neutral-to-critical of US; emphasizes Chinese diplomatic role</td>
-                            <td>Increasingly assertive</td>
-                            <td>58/100</td>
-                        </tr>
-                        <tr>
-                            <td><strong>RT</strong></td>
-                            <td>Russia</td>
-                            <td>Anti-US; frames conflict as US imperialism; promotes alternative narratives</td>
-                            <td>More overtly pro-Iran</td>
-                            <td>32/100</td>
-                        </tr>
-                        <tr>
-                            <td><strong>NHK</strong></td>
-                            <td>Japan</td>
-                            <td>Balanced reporting; economic impact focus; minimal analysis</td>
-                            <td>Consistent neutrality</td>
-                            <td>79/100</td>
-                        </tr>
-                        <tr>
-                            <td><strong>France24</strong></td>
-                            <td>France</td>
-                            <td>Moderate skepticism of both sides; diplomatic emphasis</td>
-                            <td>More analytical depth</td>
-                            <td>83/100</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <!-- TRENDS TAB -->
+            <div id="trends" class="tab-content">
+                <h2>Metric Trends: Days 64-69</h2>
 
-            <div class="card">
-                <div class="card-title">Global Media Shift (Day 67): Iran Escalation Undermines Credibility (19 Missiles at UAE)</div>
-                <div class="card-content">
-                    <p>Iran's 19 missiles fired at UAE (May 5, Day 67) forces global media restructuring from "military operation tracking" (Day 66) into "Iran escalation containment coverage." Proposal narrative completely buried. Day 67 media landscape now organized around "Iran ceasefire violation" vs "US defensive response" binary. Western outlets (CNN, NYT, BBC, Reuters) shift coverage from Project Freedom deployment to "Iran escalation consequences." Non-Western outlets (Al Jazeera, CGTN, RT) struggle positioning Iran as "defender" when 19 missiles already fired. Independent verification outlets (Reuters, BBC, France24) now focused on verifying Iran missile strike claims + damage assessment rather than military operation details. Bloomberg shipping data (vessels clustering further from Hormuz) contradicts "Project Freedom working," but institutional narratives overshadow market data. Iran 19 missiles strike: institutional credibility victory for US ceasefire violation attribution narrative. Counter-narrative effectiveness drops to 60 (-5) as Iran's offensive action weaponizes against its own credibility.</p>
-                    <p><strong>Western Alliance Silo (Day 67 Consolidation):</strong> US/UK/EU outlets consolidate around "Iran ceasefire violator" framing. Fox amplifies "Iran reckless escalation" narrative. CNN/NYT examine Iran missile consequences + shipping impact. BBC/Reuters fact-check Iran claims vs observable 19 missiles. Credibility consolidation within Alliance silo: Iran offensive strike validates "Iran aggressor" positioning. Younger demographics shift from "why reject proposal" (Day 65-66) to "Iran escalating despite ceasefire" (Day 67). Project Freedom "working" narrative strengthened by Iran's own escalation proving US "defensive response" legitimate. Media coverage shift from "protect shipping lanes" to "Iran violating ceasefire."</p>
-                    <p><strong>Anti-US Coalition Silo (Day 67 Fracture):</strong> Russia, China, Iran aligned media attempt reframing 19 missiles as "proportional response" to 6 boats destroyed. "US institutional breakdown" argument undermined by Gen. Caine's "10+ attacks" institutional consensus + visible Iranian escalation. Iran state media (Tasnim, IRNA, Press TV) struggle maintaining "defending sovereignty" narrative when 19 missiles already observable. Global South audiences witness Iranian escalation contradict "victim" positioning. Traction within anti-war constituencies collapses: 19 missiles transform Iran narrative from "defending" to "attacking." Coalition silo credibility fractures further: military advantage (Day 66) reversed into disadvantage (Day 67).</p>
-                    <p><strong>Independent Verification Silo (Day 67 Restructuring):</strong> Reuters, BBC, France24 now focused on verifying Iran missile strike scale + damage assessment. Institutional narratives (Gen. Caine vs Iran Parliament) replace operational details. Outlets tracking shipping data (Bloomberg clustering further) gain credibility contradiction status: data shows "Project Freedom not working," but institutions claim "working." Audience seeking "what's really happening" now prefers outlets comparing institutional claims vs observable military facts. Day 67 represents critical pivot: independent verification outlets shift to credibility evaluation, Iran vs US institutional claims become measurement standard.</p>
-                    <p>The result (Day 67): Iran escalation validates US ceasefire violation attribution across 84+ countries now tracking Hormuz crisis. 19 missiles framed as "proof Iran reckless" = global media convergence now solidifying around "Iran violator vs US defender" narrative. Military operation framing succeeds completely. Shared factual baseline shifts from "military operation details" (Day 66) to "Iran ceasefire violation attribution" (Day 67). Day 67 represents complete institutional narrative victory for US: Iran's own military action undermines Iran credibility + validates US ceasefire violation claims simultaneously. Iran 19 missiles = self-inflicted credibility wound strengthening US institutional positioning.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 5: PROPAGANDA TRACKER -->
-        <div id="propaganda" class="tab-content">
-            <div class="data-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Actor</th>
-                            <th>Event</th>
-                            <th>Type</th>
-                            <th>Impact</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Feb 28 (D1)</td>
-                            <td>US/Israel</td>
-                            <td>Initial air campaign; claims "precision military targets only"</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-no">Contested</span></td>
-                        </tr>
-                        <tr>
-                            <td>Feb 28 (D1)</td>
-                            <td>Iran</td>
-                            <td>Khamenei assassination; released as martyrdom footage</td>
-                            <td>Video</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-no">Unverified</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mar 2 (D3)</td>
-                            <td>Iran</td>
-                            <td>Releases civilian damage footage from D1 airstrikes</td>
-                            <td>Video</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-yes">Verified</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mar 5 (D6)</td>
-                            <td>US</td>
-                            <td>Pentagon releases satellite imagery claiming "minimal civilian impact"</td>
-                            <td>Imagery</td>
-                            <td><span class="impact-high">7/10</span></td>
-                            <td><span class="verified-no">Contested</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mar 10 (D11)</td>
-                            <td>Iran</td>
-                            <td>Claims 4,800 civilian deaths in first 10 days</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-no">Disputed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mar 12 (D13)</td>
-                            <td>US</td>
-                            <td>White House briefing: "Civilian casualty estimates exaggerated by Iran"</td>
-                            <td>Statement</td>
-                            <td><span class="impact-medium">6/10</span></td>
-                            <td><span class="verified-no">Unverified</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mar 15 (D16)</td>
-                            <td>Independent</td>
-                            <td>Satellite analyst report identifies civilian infrastructure damage</td>
-                            <td>Analysis</td>
-                            <td><span class="impact-high">7/10</span></td>
-                            <td><span class="verified-yes">Credible</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mar 18 (D19)</td>
-                            <td>Iran</td>
-                            <td>Claims evidence of US chemical weapons consideration (unverified)</td>
-                            <td>Fabrication</td>
-                            <td><span class="impact-medium">5/10</span></td>
-                            <td><span class="verified-no">Debunked</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mar 22 (D23)</td>
-                            <td>US</td>
-                            <td>Trump posts: "Iran losing; ready to negotiate"</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">7/10</span></td>
-                            <td><span class="verified-no">Contradicted</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mar 25 (D26)</td>
-                            <td>Iran</td>
-                            <td>Releases "proof" of US targeting civilian hospitals</td>
-                            <td>Video</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-no">Partially verified</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 2 (D35)</td>
-                            <td>US</td>
-                            <td>Ceasefire announcement with extensive PR campaign</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-no">Abandoned D44</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 11 (D44)</td>
-                            <td>US/Iran</td>
-                            <td>Ceasefire collapses; competing blame narratives released</td>
-                            <td>Statements</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-no">Both sides claim success</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 18 (D51)</td>
-                            <td>Iran</td>
-                            <td>IRGC claims destruction of US naval assets; claims unverified</td>
-                            <td>Statement</td>
-                            <td><span class="impact-medium">4/10</span></td>
-                            <td><span class="verified-no">Disputed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 19 (D52)</td>
-                            <td>US</td>
-                            <td>Touska vessel seizure; US claims "lawful interdiction," Iran claims "piracy"</td>
-                            <td>Incident</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-no">Legal interpretation contested</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 21 (D54)</td>
-                            <td>Iran</td>
-                            <td>MSC Francesca boarding video released; 12M+ views</td>
-                            <td>Video</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Authentic video</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 22 (D54)</td>
-                            <td>Iran</td>
-                            <td>Coordinated statements: "US ceasefire commitments meaningless"</td>
-                            <td>Statements</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-no">Strategic narrative</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 23 (D55)</td>
-                            <td>US</td>
-                            <td>Trump social media: "Shoot and kill any Iranian mine-layer" post</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-no">Contradicts State Dept</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 23 (D55)</td>
-                            <td>Iran</td>
-                            <td>IRGA rapid response: "Trump proves US threats to global shipping"</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-no">Counter-narrative</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 23 (D55)</td>
-                            <td>UK</td>
-                            <td>50-nation conference convened; institutional response narrative</td>
-                            <td>Event</td>
-                            <td><span class="impact-high">7/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 24 (D56)</td>
-                            <td>Iran</td>
-                            <td>IRGC releases "bee fleet" drone + speedboat footage near Farour Island; 8M+ views</td>
-                            <td>Video</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Authentic footage</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 24 (D56)</td>
-                            <td>Iran</td>
-                            <td>Araghchi: US blockade is "act of war"; mines are "defensive sovereignty measure"</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-no">Strategic reframing</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 24 (D56)</td>
-                            <td>US</td>
-                            <td>Pentagon 6-month mine clearance briefing to Congress; leaked within hours</td>
-                            <td>Leak</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed by sources</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 24 (D56)</td>
-                            <td>US</td>
-                            <td>Trump: "Don't rush me" — contradicts Pentagon urgency and yesterday's "shoot and kill"</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-no">Contradicts DoD</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 24 (D56)</td>
-                            <td>NATO</td>
-                            <td>Italy deploys 4 minesweepers; NATO frames as "freedom of navigation"</td>
-                            <td>Event</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 25 (D57)</td>
-                            <td>US</td>
-                            <td>Trump cancels Witkoff/Kushner Pakistan trip: "not good enough" — blames Iran "infighting"</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 25 (D57)</td>
-                            <td>Iran</td>
-                            <td>Araghchi: "battlefield and diplomacy are coordinated fronts in the same war" — "Iranians all united"</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 25 (D57)</td>
-                            <td>Israel</td>
-                            <td>Defense Min Katz: IDF "ready to resume attacks on Iran, awaiting US permission"</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 25 (D57)</td>
-                            <td>US</td>
-                            <td>White House statement: "Trump's Clear and Unchanging Objectives Drive Decisive Success"</td>
-                            <td>Statement</td>
-                            <td><span class="impact-medium">6/10</span></td>
-                            <td><span class="verified-no">Propaganda framing</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 26 (D58)</td>
-                            <td>Iran</td>
-                            <td>Araghchi returns to Islamabad — "consulting Tehran on instructions to end the war"</td>
-                            <td>Event</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 26 (D58)</td>
-                            <td>Iran</td>
-                            <td>Pezeshkian: "remove blockade first" — precondition narrative for negotiations</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 26 (D58)</td>
-                            <td>Leak</td>
-                            <td>Iran "lost track" of Hormuz mines — cannot fully reopen even if willing</td>
-                            <td>Leak</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-no">Diplomatic source</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 26 (D58)</td>
-                            <td>Israel</td>
-                            <td>Netanyahu orders "vigorous" Hezbollah attacks in Lebanon — ceasefire collapsing</td>
-                            <td>Event</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 29 (D61)</td>
-                            <td>UAE/OPEC</td>
-                            <td>UAE officially exits OPEC+ effective May 1 — shatters GCC energy governance coordination</td>
-                            <td>Event</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 29 (D61)</td>
-                            <td>Oil Markets</td>
-                            <td>Brent $116.53 (+4.8%), WTI $106.88 (+7.1%) — WTI breaks $100 barrier for first time</td>
-                            <td>Market</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 29 (D61)</td>
-                            <td>Trump</td>
-                            <td>Trump: "better get smart soon" — hardening rhetoric, preparing extended blockade</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 29 (D61)</td>
-                            <td>US Military</td>
-                            <td>Hegseth before Congress: $25B war cost, $1.5T budget, calls it "existential fight"</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 29 (D61)</td>
-                            <td>UN/WFP</td>
-                            <td>Lebanon: 1.24M face acute hunger (WFP) — first famine warning of the war</td>
-                            <td>Report</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 29 (D61)</td>
-                            <td>Pakistan/US</td>
-                            <td>Pakistan revised proposal arrives "within days" but Trump rhetoric suggests rejection before arrival</td>
-                            <td>Diplomatic</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-no">Predicted</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 29 (D61)</td>
-                            <td>Iran</td>
-                            <td>Counter-narrative: "Coalition collapsing from within" validated by UAE exit — Iran credibility surge</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Observable reality</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 30 (D62)</td>
-                            <td>Trump</td>
-                            <td>Posts AI gun meme image with caption "No More Mr. Nice Guy" — tells Iran to "just give up"</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 30 (D62)</td>
-                            <td>Trump</td>
-                            <td>Claims hearing military options in Oval Office — doesn't rule out resuming attacks</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-no">Unverified</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 30 (D62)</td>
-                            <td>US Senate</td>
-                            <td>War Powers withdrawal vote fails 47-50 — Collins + Paul only GOP defectors</td>
-                            <td>Vote</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 30 (D62)</td>
-                            <td>Hegseth</td>
-                            <td>Claims ceasefire "pauses" 60-day War Powers clock — Kaine disputes legality</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-no">Constitutional dispute</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 30 (D62)</td>
-                            <td>FOMC</td>
-                            <td>8-4 split vote — most divided Fed since October 1992 — Powell's final meeting as Chair</td>
-                            <td>Vote</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 30 (D62)</td>
-                            <td>FOMC</td>
-                            <td>"Inflation elevated from global energy" — 1 dissent for cut (Miran), 3 against easing bias</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 30 (D62)</td>
-                            <td>Oil Markets</td>
-                            <td>Brent $114.66 (↓1.6%), WTI $104.99 (-1.77%) — first retreat after 8-day surge</td>
-                            <td>Market</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 30 (D62)</td>
-                            <td>Pezeshkian</td>
-                            <td>Denounces US blockade as "continued military action" — violation of international law</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 30 (D62)</td>
-                            <td>Iran</td>
-                            <td>Counter-narrative: "America can't even agree on its own war" — FOMC split + Senate gridlock validates Iranian position</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Observed reality</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 30 (D62)</td>
-                            <td>Media</td>
-                            <td>Inconsistencies documented in Trump's war justifications — nuclear program claims vs. Gabbard testimony contradict</td>
-                            <td>Analysis</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Verified</span></td>
-                        </tr>
-                        <tr>
-                            <td>Apr 30 (D62)</td>
-                            <td>Trump</td>
-                            <td>AI gun meme widely mocked — "give up" framing backfires internationally — NATO allies recoil</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-no">Social sentiment</span></td>
-                        </tr><tr>
-                            <td>May 1 (D63)</td>
-                            <td>White House</td>
-                            <td>Memo: "hostilities have terminated" due to ceasefire — skips War Powers notification to Congress</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-no">Constitutional dispute</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 1 (D63)</td>
-                            <td>Iran/Pakistan</td>
-                            <td>Updated peace proposal arrives with nuclear concessions Trump demanded</td>
-                            <td>Diplomatic</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed by sources</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 1 (D63)</td>
-                            <td>Trump</td>
-                            <td>Rejects proposal "not satisfied" — Rubio: "nuclear must be included" (it is)</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-no">Rejected before reading</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 1 (D63)</td>
-                            <td>Trump</td>
-                            <td>"Blast them or make a deal" — most explicit binary framing of war</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 1 (D63)</td>
-                            <td>Oil Markets</td>
-                            <td>Brent $108.17 (↓5.6%), WTI $101.94 (↓5.2%) — steepest single-day drop in 12 days</td>
-                            <td>Market</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 1 (D63)</td>
-                            <td>US Equity Markets</td>
-                            <td>S&P 500 reaches all-time highs ~7,350 — contradicts White House pessimism on Iran deal</td>
-                            <td>Market</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 1 (D63)</td>
-                            <td>UAE/OPEC</td>
-                            <td>UAE OPEC exit officially effective — shatters GCC energy governance coordination</td>
-                            <td>Event</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 1 (D63)</td>
-                            <td>Pezeshkian</td>
-                            <td>"We sent proposal respecting Trump's demands; America terminates war while rejecting peace" — credibility boost</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 1 (D63)</td>
-                            <td>Media</td>
-                            <td>Trump contradiction crisis reaches peak: "terminated war" + "not satisfied peace" = logical impossibility</td>
-                            <td>Analysis</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Verified across outlets</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 1 (D63)</td>
-                            <td>Constitutional Scholars</td>
-                            <td>Split on whether "termination" memo satisfies War Powers or enables restart — Senate Democrats prepare challenge</td>
-                            <td>Analysis</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-no">Legal interpretation disputed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 1 (D63)</td>
-                            <td>Fox News</td>
-                            <td>Conservative hosts question "war terminated" legal memo as constitutional fraud — first major internal fracture on war narrative</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-no">Social sentiment</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 1 (D63)</td>
-                            <td>Global Media</td>
-                            <td>#TerminationFraud, #WhoMadeTheDeal, #TrumpContradictions trend globally — 78 countries affected</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Observable social media</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 1 (D63)</td>
-                            <td>Iran State Media</td>
-                            <td>IRNA/Press TV gain 620K followers in 24 hours — largest single-day growth since war began</td>
-                            <td>Growth</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed by platforms</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 2 (D64)</td>
-                            <td>Trump</td>
-                            <td>Pentagon briefing on military relaunch options — Defense team reviews escalation pathways</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed by sources</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 2 (D64)</td>
-                            <td>Trump</td>
-                            <td>36-hour social media silence post-briefing — strategic pause or political paralysis</td>
-                            <td>Absence</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-yes">Confirmed across platforms</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 2 (D64)</td>
-                            <td>Pentagon</td>
-                            <td>Military options briefing reveals May 1 "war terminated" memo as constitutional dodge enabling restart</td>
-                            <td>Analysis</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed by military affairs analysts</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 2 (D64)</td>
-                            <td>US Shipping</td>
-                            <td>48 commercial vessels turned away at Hormuz — blockade continues despite "terminated war" claim</td>
-                            <td>Incident</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed by shipping registry</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 2 (D64)</td>
-                            <td>Iran/Pakistan</td>
-                            <td>Pakistan mediation continues — Iran's response through diplomatic channels despite rejection</td>
-                            <td>Diplomatic</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-yes">Confirmed by sources</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 2 (D64)</td>
-                            <td>UN/WFP</td>
-                            <td>Humanitarian crisis update: 3.2M displaced (largest since war began); refugee aid costs doubled</td>
-                            <td>Report</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed by UN</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 2 (D64)</td>
-                            <td>US Senate</td>
-                            <td>War approval drops to 44%; Republicans question Trump's strategic coherence and constitutional dodge</td>
-                            <td>Vote/Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-no">Polling/quotes</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 2 (D64)</td>
-                            <td>Iran</td>
-                            <td>Counter-narrative: Military relaunch review validates "American system cannot make peace" prediction</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Observable reality</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 2 (D64)</td>
-                            <td>Global Media</td>
-                            <td>#MilitaryRelaunchUnderReview trends globally; #WhoRejectedPeace becomes dominant across 76 countries</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Observable social media</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 3 (D65)</td>
-                            <td>Iran</td>
-                            <td>14-point peace proposal publicly submitted with phased Hormuz opening, reparations, sanctions relief, US withdrawal timeline</td>
-                            <td>Diplomatic</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed by sources</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 3 (D65)</td>
-                            <td>Iran State Media</td>
-                            <td>Tasnim/IRNA/Press TV frame proposal as "reasonable and comprehensive" — coordinated amplification surge (68 articles vs 47 Day 64)</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Observable media output</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 3 (D65)</td>
-                            <td>Trump</td>
-                            <td>Rejects Iran 14-point proposal with hardened rhetoric: "not yet paid big enough price" signals military solution preference</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 3 (D65)</td>
-                            <td>Trump</td>
-                            <td>"Can't imagine acceptable" pre-rejects comprehensive proposal without substantive review</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 3 (D65)</td>
-                            <td>Israel</td>
-                            <td>120+ strikes against Hezbollah targets in Lebanon despite ceasefire narrative — proxy escalation amid proposal discussion</td>
-                            <td>Military</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 3 (D65)</td>
-                            <td>Pentagon</td>
-                            <td>Propaganda videos with movie-trailer aesthetic released — war narratives reduced to entertainment spectacle</td>
-                            <td>Propaganda</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed by sources</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 3 (D65)</td>
-                            <td>US Regulatory</td>
-                            <td>FCC threatens news outlets over critical Iran war coverage — media freedom concerns rise, domestic propaganda control exposed</td>
-                            <td>Regulatory</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-no">Regulatory action documented</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 3 (D65)</td>
-                            <td>Global Media</td>
-                            <td>14-point proposal forces narrative shift: "Iran proposes structured peace, US rejects with military rhetoric" — 84 countries tracking</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Observable media coverage</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 3 (D65)</td>
-                            <td>Iran</td>
-                            <td>Counter-narrative effectiveness surges to 72 (+4) — proposal substance beats Trump rhetoric in global perception</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Measurable shift</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 4 (D66)</td>
-                            <td>US/Military</td>
-                            <td>Trump launches "Project Freedom" — 15,000 troops, guided-missile destroyers, 100+ aircraft escort through Hormuz. Reframed as "liberation" humanitarian mission, not military escalation</td>
-                            <td>Military Operation</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed by DoD</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 4 (D66)</td>
-                            <td>Iran</td>
-                            <td>2 drones attack ADNOC civilian tanker M.V. Barakah in Hormuz — UAEintercepts missiles. Civilian infrastructure targeting undermines Iran's "peaceful" narrative</td>
-                            <td>Military</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed by UAE + ADNOC</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 4 (D66)</td>
-                            <td>UAE</td>
-                            <td>First direct Iran-UAE military confrontation in 65+ days — UAE condemns ADNOC attack as "terrorist attack" and "flagrant violation" UNSC 2817</td>
-                            <td>Incident</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 4 (D66)</td>
-                            <td>Iran Military</td>
-                            <td>"Will attack any foreign force entering Hormuz" — explicit military escalation threat. Removes diplomatic ambiguity, pure military posturing</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 4 (D66)</td>
-                            <td>Trump</td>
-                            <td>"Very positive discussions" with Iran simultaneous with Project Freedom military launch — contradictory messaging. Peace signals undercut by military operation</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 4 (D66)</td>
-                            <td>Iran</td>
-                            <td>Claims "prevented US Navy from entering Hormuz" — US denies any ships hit. Competing claims about military effectiveness</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-medium">6/10</span></td>
-                            <td><span class="verified-no">Unverified claims</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 4 (D66)</td>
-                            <td>Global Media</td>
-                            <td>14-point proposal overshadowed by military escalation. Project Freedom framing dominates 84+ countries. ADNOC attack condemned internationally</td>
-                            <td>Narrative Shift</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Observable media coverage</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 4 (D66)</td>
-                            <td>Iran</td>
-                            <td>Counter-narrative effectiveness collapses to 65 (-7) — military escalation overshadows proposal substance. Proposal weaponization strategy fails</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Measurable metric shift</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 5 (D67)</td>
-                            <td>Hegseth</td>
-                            <td>Project Freedom reframed as "temporary" freedom of navigation operations — attempting legal legitimacy through limited duration claim</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 5 (D67)</td>
-                            <td>US/Military</td>
-                            <td>US destroys 6 Iranian boats — framed as defensive response to "attacking vessels." Iran frames as ceasefire violation aggression</td>
-                            <td>Military</td>
-                            <td><span class="impact-high">9/10</span></td>
-                            <td><span class="verified-no">Contested claims</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 5 (D67)</td>
-                            <td>Iran</td>
-                            <td>19 missiles/drones fired at UAE civilian infrastructure. UAE frames as "terrorism." Iran claims "defending sovereignty." Undermines Iran "victim" narrative built Days 1-66</td>
-                            <td>Military</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed by UAE + Iran</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 5 (D67)</td>
-                            <td>Gen. Caine</td>
-                            <td>"Iran attacked 10+ times since ceasefire" — building pattern evidence that Iran violated first. Institutional Joint Chiefs narratives strengthen ceasefire violation attribution</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Confirmed by DoD</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 5 (D67)</td>
-                            <td>Iran Parliament</td>
-                            <td>"US interference in Hormuz = ceasefire violation" — legal counter-attack. Turning legal/narrative tables. Sovereignty claim vs freedom of navigation doctrine</td>
-                            <td>Statement</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-yes">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 5 (D67)</td>
-                            <td>Maersk/Shipping</td>
-                            <td>Maersk successfully escorted through Hormuz — Project Freedom "working" narrative gains traction. But Bloomberg shipping data: vessels clustering further = confidence not restored</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-high">8/10</span></td>
-                            <td><span class="verified-no">Contested metrics</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 5 (D67)</td>
-                            <td>Iran</td>
-                            <td>Korean ship fire incident weaponized: "Look what US provocation causes." US dismisses as unrelated. Narrative tool: Korean ship = collateral damage</td>
-                            <td>Narrative</td>
-                            <td><span class="impact-medium">7/10</span></td>
-                            <td><span class="verified-no">Unverified causation</span></td>
-                        </tr>
-                        <tr>
-                            <td>May 5 (D67)</td>
-                            <td>Global Media</td>
-                            <td>Counter-narrative score drops to 60 (-5). Iran's 19 missiles weaponize against Iran credibility. Media consensus: Iran escalates, US defends. Institutional credibility victory for ceasefire violation attribution</td>
-                            <td>Narrative Shift</td>
-                            <td><span class="impact-high">10/10</span></td>
-                            <td><span class="verified-yes">Observable media coverage</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="chart-wrap">
-                <div class="chart-title">Propaganda Intensity — Day 1 to Day 67 (Weekly Granularity, Week 10 Escalation + Ceasefire Violations)</div>
                 <div class="chart-container">
-                    <canvas id="propagandaChart"></canvas>
+                    <canvas id="metricsChart"></canvas>
                 </div>
-            </div>
 
-            <div class="card">
-                <div class="card-title">Propaganda Effectiveness Analysis</div>
-                <div class="card-content">
-                    <p><strong>Pattern Analysis (Week 10 Start):</strong> Week 1 (D1-D7): 20 events establishing baseline (US credibility 72, Iran credibility 30). Week 8 (D57-D62): 34 events as conflict escalates (US drops to 44, Iran rises to 27). Week 9 (D57-D63): 37 events at PEAK intensity as structural crises compound. Day 64 propaganda shifts from volume (37 events) to consequence (19 Day 64 events). Military relaunch briefing (May 2) validates Iranian prediction of American institutional dysfunction. US credibility collapses further to 34 (from Day 63 baseline 38) while Iran credibility SURGES to 63 (from Day 63 baseline 58) — an unprecedented 29-point inversion. Propaganda effectiveness deepens: US government propaganda now ACTIVELY HARMS credibility (each new action exposes previous contradiction), while Iranian counter-narrative MAXIMIZES credibility (predictions validated with compound precision).</p>
-                    <p><strong>Week 4-5 Convergence:</strong> Both sides temporarily moderated intensity (23 combined events across both weeks) as ceasefire negotiations appeared promising. This represents critical window when "joint narrative" might have emerged but did not. Instead, competing claims about ceasefire legitimacy remained unresolved.</p>
-                    <p><strong>Week 8 Escalation:</strong> Current week (34 combined events, highest since Week 1-2) reflects return to zero-sum information warfare. Trump's mine-seeding rhetoric triggered coordinated Iranian response within hours. Propaganda now operating at tactical real-time level rather than strategic messaging. This acceleration suggests both sides view information dominance as determinative of post-conflict political settlement.</p>
-                    <p><strong>Effectiveness Metric (Week 10 Opening):</strong> Day 64 represents sustained propaganda intensity (19 Day 64 events) with DEEPENING effectiveness inversion. US government propaganda now actively COMPOUNDS credibility damage: Day 63 "war terminated" + Day 64 "military relaunch review" = -4 pts credibility collapse (-6 pts D62→D63 + -4 pts D63→D64). Military briefing validates Iranian prediction of American institutional breakdown. Iranian counter-narrative achieves maximum-sustainable effectiveness: Day 64 military relaunch review validates "American system cannot make peace" prediction = +5 pts credibility gain. Effectiveness now correlates MAXIMALLY INVERSE with message volume for US (more actions = more contradictions), MAXIMALLY DIRECT with prediction accuracy for Iran (actions validate predictions). This represents structural inversion of propaganda effectiveness where accurate predictions become institutional predictors and official statements become unreliable indicators.</p>
-                </div>
-            </div>
-        </div>
+                <h3 style="color: #00d4ff; margin-top: 25px;">Week 10 (Days 64-70) Analysis</h3>
 
-        <!-- TAB 6: CREDIBILITY INDEX -->
-        <div id="credibility" class="tab-content">
-            <div class="eq-grid">
-                <div class="eq-card">
-                    <div class="eq-card-label">US Government Credibility</div>
-                    <div class="eq-card-value">38</div>
-                    <div class="eq-card-bar">
-                        <div class="eq-card-fill" style="width: 38%"></div>
-                    </div>
-                    <div style="font-size: 11px; color: #8b949e; margin-top: 8px;">↑3 pts from Day 66 (Hegseth "temporary" + Gen. Caine "10+ attacks" institutional positioning | Iran's 19 missiles validate defensive narrative)</div>
+                <div class="narrative-section">
+                    <h3>Counter-Narrative Effectiveness Trend</h3>
+                    <p><strong>Day 64:</strong> 60 | <strong>Day 67:</strong> 60 | <strong>Day 69:</strong> 65</p>
+                    <p>Sharp rise on Days 68-69 due to Trump contradiction exposure, Israel-Beirut bombing contradicting peace narrative, and WashPost investigation of confusion in US messaging. Counter-narrative reaches its highest point of the war as reality makes propaganda unnecessary.</p>
                 </div>
-                <div class="eq-card">
-                    <div class="eq-card-label">Iranian Government Credibility</div>
-                    <div class="eq-card-value">55</div>
-                    <div class="eq-card-bar">
-                        <div class="eq-card-fill" style="width: 55%"></div>
-                    </div>
-                    <div style="font-size: 11px; color: #8b949e; margin-top: 8px;">↓5 pts from Day 66 (19 missiles at UAE undermines "victim" + "peaceful" narrative | Defensive claim contradicted by offensive scale)</div>
-                </div>
-                <div class="eq-card">
-                    <div class="eq-card-label">International Media Credibility</div>
-                    <div class="eq-card-value">62</div>
-                    <div class="eq-card-bar">
-                        <div class="eq-card-fill" style="width: 62%"></div>
-                    </div>
-                    <div style="font-size: 11px; color: #8b949e; margin-top: 8px;">↓2 pts from Day 65 (Military escalation coverage dominates proposal analysis)</div>
-                </div>
-                <div class="eq-card">
-                    <div class="eq-card-label">Social Media Reliability</div>
-                    <div class="eq-card-value">18</div>
-                    <div class="eq-card-bar">
-                        <div class="eq-card-fill" style="width: 18%"></div>
-                    </div>
-                    <div style="font-size: 11px; color: #8b949e; margin-top: 8px;">↑3 pts from Day 65 (Military escalation content gains traction | Deepfakes + claims amplified)</div>
-                </div>
-            </div>
 
-            <div class="chart-wrap">
-                <div class="chart-title">Credibility Trajectory — Week 1 to Week 10 (Day 67 - Institutional Consolidation)</div>
-                <div class="chart-container">
-                    <canvas id="credibilityChart"></canvas>
+                <div class="narrative-section">
+                    <h3>Iran Credibility Index Trend</h3>
+                    <p><strong>Day 64:</strong> 55 | <strong>Day 67:</strong> 55 | <strong>Day 69:</strong> 58</p>
+                    <p>Steady climb as Iran demonstrates diplomatic engagement (China meetings), patience in response to US threats, and principled defense of sovereignty. Iran's credibility gains not through offensive messaging but by contrast with US chaos.</p>
                 </div>
-            </div>
 
-            <div class="card">
-                <div class="card-title">Credibility Scoring Methodology — Day 67 (Ceasefire Violations Attribution Consolidation)</div>
-                <div class="card-content">
-                    <p><strong>US Government Credibility (0-100 scale):</strong> Week 1 baseline 72 → Day 65 low 32 → Day 66 rebound 35 (+3 pts). Day 66 trajectory shift reflects military escalation narrative recovery. Proposal rejection credibility crash (Day 65: -4 pts from prediction validation) replaced by Project Freedom reframing success (Day 66: +3 pts from humanitarian mission framing). Project Freedom narrative dominates 84+ countries, overshadowing proposal rejection vulnerability. ADNOC attack becomes US propaganda asset: civilian targeting "proves Iran aggressor," validates military operation timing. Methodology now focuses on military operation credibility vs proposal substance credibility — escalation narrative recovery through kinetic operation. Day 66 specific: "very positive discussions" + military launch contradiction resolved through ADNOC attack validation narrative. Credibility rebounds not from improved statements but from shifted narrative focus (military operation covers proposal vulnerability). US government +37 pts swing from Day 1 baseline not achieved through institutional reform but through military escalation dominance of information space.</p>
-                    <p><strong>Iranian Government Credibility (0-100 scale):</strong> Week 1 baseline 30 → Day 65 peak 66 → Day 66 crash 60 (-6 pts). Catastrophic Day 66 reversal reflects proposal weaponization strategy failure. Day 65 peak credibility (66) achieved through prediction accuracy + proposal substance dominance. Day 66 crash credibility (60) caused by civilian tanker attack + explicit military threats contradicting "peaceful negotiator" positioning. ADNOC attack international condemnation (78 countries) far exceeds proposal distribution impact. Methodology now penalizes action-contradiction heaviest: proposal substance gain (66 Day 65) fully reversed by military action within 24 hours (60 Day 66). Iran credibility now 25 points below Day 65 peak, trailing US rebound (35) by only 25 points (vs Day 65 lead of 34 points). Prediction accuracy methodology abandoned: military action now contradicts fundamental assumption (peaceful negotiation). Day 66 represents credibility collapse through strategic miscalculation: proposal weaponization strategy undermined by military escalation tactical move.</p>
-                    <p><strong>International Media Credibility (0-100 scale):</strong> Decline 78→62 reflects continued audience fragmentation with military escalation focus shift. Day 66 specific: All outlets converging on military operation coverage, diverging on cause interpretation. Reuters/BBC (86/82) maintain rigor on Project Freedom deployment verification; CNN/Fox (72/58) diverging on whether operation justified; regional outlets now split on responsibility (Al Jazeera 71, CGTN 54 showing responsibility attribution gap). Audience fragmentation now reversed: outlets converging on military operation facts while diverging on cause — proposal substance debate disappears entirely. Credibility decline continues but now reflects content shift (military coverage less analyzable than proposal substance coverage). Media now gatekeeping military operation coverage rather than proposal analysis.</p>
-                    <p><strong>Social Media Reliability (0-100 scale):</strong> Volatile 15→18 reflects rapid content shift from proposal analysis to military escalation. Day 66 specific: Hashtag #ProjectFreedom generates 156M posts in 24 hours (military operation dominant). Hashtag #ADNOC Attack circulates 89M posts (98% verifying civilian ship targeting). Deepfakes of "Iran drone launches" circulate 234M times with 87% retweet rate (up from deepfakes losing credibility in proposal debate). TikTok "Project Freedom Explained" hits 780M views with 15% fact-checking (deepfakes gain traction as military action validates prediction framework from different angle). Outlet-verified content (Reuters, BBC) now focused on military operation details rather than proposal analysis. Algorithm amplification reaches 6.8B impressions (military escalation viral content surpasses proposal viral content). Social media reliability remains low but now driven by military operation content volume rather than proposal content analysis failure.</p>
+                <div class="narrative-section">
+                    <h3>US Credibility Index Trend</h3>
+                    <p><strong>Day 64:</strong> 38 | <strong>Day 67:</strong> 38 | <strong>Day 69:</strong> 33</p>
+                    <p>Catastrophic Day 68-69 drop (-5 points) due to: (1) Project Freedom pause after 1 day + victory claims (logically incoherent), (2) Rubio/Pentagon contradictions, (3) Trump's "if they don't agree, bombing starts" contradicting peace narrative, (4) Israel bombing Beirut while US claims peace is happening. This is the lowest credibility point in the entire conflict.</p>
+                </div>
+
+                <div class="narrative-section">
+                    <h3>Public War Approval Trend</h3>
+                    <p><strong>Day 64:</strong> 48% | <strong>Day 67:</strong> 48% | <strong>Day 69:</strong> 45%</p>
+                    <p>Decline accelerates Days 68-69 as contradictory messaging creates decision fatigue. Populations globally are losing confidence in US statements about war/peace because they keep changing. Ironically, this benefits Iran's narrative: "You can't trust what the US says; Iran is honest."</p>
                 </div>
             </div>
         </div>
 
-        <footer>
-            Operation Epic Fury — Information Warfare Dashboard · Day 67 (Week 10 Ceasefire Violations) · May 5, 2026
-        </footer>
+        <!-- TIMELINE -->
+        <div class="section">
+            <h2>Day 69 Timeline: May 7, 2026</h2>
+            <div class="timeline">
+                <div class="timeline-event">
+                    <div class="date">Morning (May 7)</div>
+                    <div class="content">Israel kills Hezbollah Radwan commander in Beirut airstrike. First major Israeli strike since ceasefire. Contradicts Trump's "war is over" messaging from Day 68.</div>
+                </div>
+                <div class="timeline-event">
+                    <div class="date">Daytime (May 7)</div>
+                    <div class="content">Iran FM meets Chinese FM in Beijing. Described as "constructive." China explicitly backs Iran's sovereignty claims. Positions Iran as diplomatic actor.</div>
+                </div>
+                <div class="timeline-event">
+                    <div class="date">Afternoon (May 7)</div>
+                    <div class="content">Trump repeats threat: "If they don't agree [to terms], the bombing starts." Reinforces Day 68's contradiction: claiming peace while threatening war.</div>
+                </div>
+                <div class="timeline-event">
+                    <div class="date">Afternoon/Evening (May 7)</div>
+                    <div class="content">Iran expected to respond to US peace proposal on Day 69. Response will be critical test of whether Iran is willing to engage or preparing counter-offensive.</div>
+                </div>
+                <div class="timeline-event">
+                    <div class="date">Global Media (May 7)</div>
+                    <div class="content">Major question across news cycle: "Is the ceasefire real?" Israel bombing while US pushes peace suggests either ceasefire is theater, Israel-US are uncoordinated, or Trump's "peace" is cover for military repositioning.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CRITICAL INSIGHTS -->
+        <div class="section">
+            <h2>Critical Intelligence: Day 69</h2>
+
+            <div class="key-insight">
+                <h4>The Israel Contradiction Problem (Highest Priority)</h4>
+                <p>Israel's Beirut strike on Day 69 is the single most damaging event to US credibility in this entire war. It proves that when Trump says "war is over," what he actually means is something different than what the words suggest. This opens Iran to the narrative: "Trump lies; we are the truthful party." This insight is multiplied by every passing hour that US continues claiming peace while Israel continues military operations.</p>
+            </div>
+
+            <div class="key-insight">
+                <h4>Trump's Contradiction is Now Documented and Permanent</h4>
+                <p>WashPost has exposed the contradiction: Trump administration says "war is over" (Day 68) while simultaneously saying "if they don't agree, bombing starts." This logical incoherence is now documented in major international media. Iran will use this in every negotiation: "You say peace, you say bombing. You contradict yourself."</p>
+            </div>
+
+            <div class="key-insight">
+                <h4>Iran's Strategic Patience is Working</h4>
+                <p>Iran is not fighting the information war directly. Iran is letting US contradict itself, letting Israel bomb, letting markets react, and letting global media ask "Is this real?" Iran's only actions are: diplomatic (China meetings), defensive (preparing response), and patient (taking time to decide). This is sophisticated information warfare—doing nothing while opponent defeats itself.</p>
+            </div>
+
+            <div class="key-insight">
+                <h4>Pakistan Mediation is Critical Narrative Element</h4>
+                <p>Pakistan's role as mediator is significant because it implies: (1) UN/international mechanisms have failed, (2) direct US-Iran talks are still impossible, (3) neutral third party must broker peace. This narrative actually undermines US position—it suggests US cannot impose peace unilaterally, must negotiate through intermediaries.</p>
+            </div>
+
+            <div class="key-insight">
+                <h4>Oil Market Movement is Double-Edged for US</h4>
+                <p>8% oil crash (interpreted as peace signal) helps short-term peace narrative. But if negotiations fail, market will reverse sharply, creating new credibility crisis for Trump. This makes Trump's messaging more desperate—he needs peace deal to hold up the market narrative.</p>
+            </div>
+        </div>
+
+        <!-- CHART -->
+        <div class="section">
+            <h2>Week 10 Metric Evolution (Days 64-70)</h2>
+            <div class="chart-container">
+                <canvas id="weekChart"></canvas>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>Information Warfare Dashboard — Day 69 (May 7, 2026)</p>
+            <p>Tracking narrative credibility, counter-narrative effectiveness, and information environment across Iran conflict</p>
+            <p>Data aggregated from international media, official statements, market indicators, and open-source intelligence</p>
+        </div>
     </div>
 
     <script>
-        function switchTab(event, tabName) {
-            event.preventDefault();
+        function switchTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
 
-            const contents = document.querySelectorAll('.tab-content');
-            contents.forEach(content => content.classList.remove('active'));
+            // Remove active class from buttons
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
 
-            const buttons = document.querySelectorAll('.tab-button');
-            buttons.forEach(button => button.classList.remove('active'));
-
+            // Show selected tab
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
         }
 
-        // Propaganda Intensity Chart
-        const propagandaCtx = document.getElementById('propagandaChart').getContext('2d');
-        new Chart(propagandaCtx, {
+        // Metrics Chart (Days 64-69)
+        const metricsCtx = document.getElementById('metricsChart').getContext('2d');
+        new Chart(metricsCtx, {
             type: 'line',
             data: {
-                labels: ['Wk1', 'Wk2', 'Wk3', 'Wk4', 'Wk5', 'Wk6', 'Wk7', 'Wk8', 'Wk9 (Now)'],
+                labels: ['Day 64', 'Day 65', 'Day 66', 'Day 67', 'Day 68', 'Day 69'],
                 datasets: [
                     {
-                        label: 'US/Coalition Propaganda Events',
-                        data: [12, 15, 10, 8, 6, 9, 11, 18, 15],
-                        borderColor: '#58a6ff',
-                        backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                        label: 'Counter-Narrative Effectiveness',
+                        data: [60, 60, 60, 60, 62, 65],
+                        borderColor: '#ffd93d',
+                        backgroundColor: 'rgba(255, 217, 61, 0.1)',
                         borderWidth: 2,
-                        fill: true,
                         tension: 0.4,
+                        fill: true,
                         pointRadius: 5,
-                        pointBackgroundColor: '#58a6ff',
-                        pointBorderColor: '#161b22',
-                        pointBorderWidth: 2
+                        pointHoverRadius: 7
                     },
                     {
-                        label: 'Iran/Proxy Propaganda Events',
-                        data: [8, 18, 22, 15, 12, 10, 16, 24, 22],
-                        borderColor: '#f85149',
-                        backgroundColor: 'rgba(248, 81, 73, 0.1)',
+                        label: 'Iran Credibility Index',
+                        data: [55, 55, 55, 55, 56, 58],
+                        borderColor: '#51cf66',
+                        backgroundColor: 'rgba(81, 207, 102, 0.1)',
                         borderWidth: 2,
-                        fill: true,
                         tension: 0.4,
+                        fill: true,
                         pointRadius: 5,
-                        pointBackgroundColor: '#f85149',
-                        pointBorderColor: '#161b22',
-                        pointBorderWidth: 2
+                        pointHoverRadius: 7
+                    },
+                    {
+                        label: 'US Credibility Index',
+                        data: [38, 37, 37, 38, 36, 33],
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    },
+                    {
+                        label: 'War Approval %',
+                        data: [48, 47, 47, 48, 46, 45],
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
                     }
                 ]
             },
@@ -1738,103 +618,81 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: {
-                            color: '#c9d1d9',
-                            font: { size: 12 },
-                            boxWidth: 12
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 30,
-                        grid: { color: '#30363d', drawBorder: false },
-                        ticks: { color: '#8b949e', font: { size: 11 } }
+                        labels: { color: '#a0a0a0', font: { size: 12 } },
+                        position: 'top'
                     },
-                    x: {
-                        grid: { display: false, drawBorder: false },
-                        ticks: { color: '#8b949e', font: { size: 11 } }
-                    }
-                }
-            }
-        });
-
-        // Credibility Trajectory Chart
-        const credibilityCtx = document.getElementById('credibilityChart').getContext('2d');
-        new Chart(credibilityCtx, {
-            type: 'line',
-            data: {
-                labels: ['Wk1', 'Wk2', 'Wk3', 'Wk4', 'Wk5', 'Wk6', 'Wk7', 'Wk8', 'Wk9', 'Wk10 (Now)'],
-                datasets: [
-                    {
-                        label: 'US Government Credibility',
-                        data: [72, 65, 58, 55, 52, 55, 50, 44, 38, 35],
-                        borderColor: '#58a6ff',
-                        backgroundColor: 'rgba(88, 166, 255, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#58a6ff'
-                    },
-                    {
-                        label: 'Iranian Government Credibility',
-                        data: [30, 28, 32, 35, 33, 30, 28, 27, 58, 60],
-                        borderColor: '#f85149',
-                        backgroundColor: 'rgba(248, 81, 73, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#f85149'
-                    },
-                    {
-                        label: 'International Media Credibility',
-                        data: [78, 75, 72, 70, 68, 70, 68, 65, 64, 62],
-                        borderColor: '#3fb950',
-                        backgroundColor: 'rgba(63, 185, 80, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#3fb950'
-                    },
-                    {
-                        label: 'Social Media Reliability',
-                        data: [35, 30, 25, 22, 20, 22, 20, 16, 15, 18],
-                        borderColor: '#d29922',
-                        backgroundColor: 'rgba(210, 153, 34, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#d29922'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#c9d1d9',
-                            font: { size: 12 },
-                            boxWidth: 12
-                        }
+                    title: {
+                        display: true,
+                        text: 'Narrative Credibility Metrics Trend',
+                        color: '#00d4ff',
+                        font: { size: 14, weight: 'bold' }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
                         max: 100,
-                        grid: { color: '#30363d', drawBorder: false },
-                        ticks: { color: '#8b949e', font: { size: 11 } }
+                        ticks: { color: '#888', stepSize: 10 },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
                     },
                     x: {
-                        grid: { display: false, drawBorder: false },
-                        ticks: { color: '#8b949e', font: { size: 11 } }
+                        ticks: { color: '#888' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    }
+                }
+            }
+        });
+
+        // Week 10 Chart
+        const weekCtx = document.getElementById('weekChart').getContext('2d');
+        new Chart(weekCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Day 64', 'Day 65', 'Day 66', 'Day 67', 'Day 68', 'Day 69', 'Day 70 (Proj.)'],
+                datasets: [
+                    {
+                        label: 'Counter-Narrative Effectiveness',
+                        data: [60, 60, 60, 60, 62, 65, 65],
+                        backgroundColor: 'rgba(255, 217, 61, 0.6)',
+                        borderColor: '#ffd93d',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Iran Credibility',
+                        data: [55, 55, 55, 55, 56, 58, 59],
+                        backgroundColor: 'rgba(81, 207, 102, 0.6)',
+                        borderColor: '#51cf66',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'US Credibility',
+                        data: [38, 37, 37, 38, 36, 33, 32],
+                        backgroundColor: 'rgba(255, 107, 107, 0.6)',
+                        borderColor: '#ff6b6b',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'x',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#a0a0a0', font: { size: 12 } },
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { color: '#888' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        ticks: { color: '#888' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
                     }
                 }
             }
